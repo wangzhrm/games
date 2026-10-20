@@ -20,7 +20,8 @@ h1{font-size:40px;margin:0}.box{background:#0006;border-radius:18px;padding:16px
 .f,.b{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:grid;place-items:center;border:4px solid #0004;box-shadow:0 5px 12px #0007}
 .b{background:repeating-conic-gradient(#1d7a6b 0 15deg,#16604f 15deg 30deg);color:#ffffff88;font-weight:800}
 .f{background:var(--cream);transform:rotateY(180deg);color:var(--ink);font-weight:700;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2%}
-.f img{width:58%;height:58%;object-fit:contain;pointer-events:none}
+.f img{width:58%;height:58%;object-fit:contain;pointer-events:none;animation:pop .3s ease-out}
+@keyframes pop{from{opacity:0}to{opacity:1}}
 .f span{font-size:.8em;line-height:1.05;max-width:80%;text-transform:capitalize}
 .card.locked .b{background:repeating-conic-gradient(#7a4a8c 0 15deg,#5e3a6e 15deg 30deg);color:#fff;line-height:1.1;text-align:center}
 .card.cur .f{border-color:var(--gold);box-shadow:0 0 0 6px #f5b94277,0 5px 12px #0007}
@@ -38,7 +39,7 @@ h1{font-size:40px;margin:0}.box{background:#0006;border-radius:18px;padding:16px
 .pl{position:absolute;width:150px;height:68px;color:#fff;border-radius:16px;padding:6px;font-size:19px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-shadow:0 4px 0 #0005;opacity:.5;transition:width .2s,height .2s}
 .pl small{font-size:13px;font-weight:600}
 .pl.act{opacity:1;width:200px;height:82px;box-shadow:0 0 0 5px var(--gold),0 4px 0 #0005}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <div id="setup">
 <h1>Say &amp; Flip</h1>
@@ -69,6 +70,23 @@ async function load(){if(!cfg.url){$('#cats').textContent='Connect to Supabase t
  if(!r.ok)throw 0;lists=await r.json();
  $('#cats').innerHTML=lists.map((l,i)=>`<label class="cat"><input type="checkbox" value="${i}" ${i==0?'checked':''}>${esc(l.name)} <small>(${l.words.length} words)</small></label>`).join('')||'No lists saved yet.';$('#cfg').style.display='none'}
  catch(e){$('#cats').textContent='Could not load categories. Check the connection details.';$('#cfg').style.display='block'}}
+
+/* ---- Background image loader: starts after "Deal cards", retries until each image loads ---- */
+let gen=0,queue=[],active=0;const MAXPAR=4,TIMEOUT=12000;
+function loadImages(){gen++;queue=deck.filter(c=>c.w.image_url).map(c=>({c,n:0,g:gen}));active=0;pump()}
+function pump(){while(active<MAXPAR&&queue.length)runJob(queue.shift())}
+function runJob(j){if(j.g!==gen)return;active++;
+ const im=new Image();let done=false;
+ const fin=ok=>{if(done)return;done=true;clearTimeout(t);active--;
+  if(j.g===gen){
+   if(ok){im.alt='';const f=j.c.el.querySelector('.f');f.insertBefore(im,f.firstChild)}
+   else{const g=j.g;setTimeout(()=>{if(g===gen){j.n++;queue.push(j);pump()}},Math.min(500*2**j.n,8000))}}
+  pump()};
+ const t=setTimeout(()=>{im.onload=im.onerror=null;im.removeAttribute('src');fin(false)},TIMEOUT);
+ im.onload=()=>fin(true);im.onerror=()=>fin(false);
+ const u=j.c.w.image_url;im.src=j.n?u+(u.includes('?')?'&':'?')+'_r='+j.n:u}
+addEventListener('online',pump);
+
 function start(){const ch=[...document.querySelectorAll('#cats input:checked')].map(c=>lists[c.value]);
  const m=new Map();ch.forEach(l=>l.words.forEach(w=>m.set(w.word.toLowerCase(),w)));const pool=[...m.values()];
  if(pool.length<6)return alert('Choose categories with at least 6 words in total.');
@@ -76,9 +94,9 @@ function start(){const ch=[...document.querySelectorAll('#cats input:checked')].
  deck=shuf(pool).slice(0,cnt).map(w=>({w,up:false,gone:false,lock:0}));left=deck.length;turn=0;
  const T=$('#table');T.innerHTML='';
  deck.forEach((c,i)=>{const d=document.createElement('div');d.className='card';
-  d.innerHTML=`<div class="in"><div class="b">?</div><div class="f">${c.w.image_url?`<img src="${esc(c.w.image_url)}" alt="">`:''}<span>${esc(c.w.word)}</span></div></div>`;
+  d.innerHTML=`<div class="in"><div class="b">?</div><div class="f"><span>${esc(c.w.word)}</span></div></div>`;
   d.onclick=()=>flip(i);c.el=d;T.appendChild(d)});
- $('#setup').style.display='none';$('#game').style.display='block';place();setPhase('flip')}
+ $('#setup').style.display='none';$('#game').style.display='block';place();setPhase('flip');loadImages()}
 function place(){if(!deck.length)return;const T=$('#table'),W=T.clientWidth,H=T.clientHeight,n=deck.length,R=72;let s=170,cells=[];
  for(;s>=44;s-=2){const cell=s*1.1,cols=Math.floor(W/cell),rows=Math.floor(H/cell),ox=(W-cols*cell)/2,oy=(H-rows*cell)/2;cells=[];
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const x=ox+(c+.5)*cell,y=oy+(r+.5)*cell,d=Math.hypot(x-W/2,y-H/2);if(d>=R+s/2+4)cells.push({x,y,d})}
@@ -106,7 +124,7 @@ function no(){if(phase!=='judge')return;const c=deck[cur];setPhase('show');msg(`
  const r=$('#ring');r.style.transition='none';r.style.strokeDashoffset=0;$('#hub svg').style.opacity=1;r.getBoundingClientRect();
  r.style.transition=`stroke-dashoffset ${fu}s linear`;r.style.strokeDashoffset=326.7;
  tid=setTimeout(()=>{c.up=false;c.el.classList.remove('up','cur');$('#hub svg').style.opacity=0;deck.forEach(x=>{if(x.lock>0)x.lock--});c.lock=LOCK;locks();turn=(turn+1)%P.length;setPhase('flip')},fu*1000)}
-function endGame(){clearTimeout(tid);$('#game').style.display='none';const e=$('#end');e.style.display='flex';
+function endGame(){clearTimeout(tid);gen++;$('#game').style.display='none';const e=$('#end');e.style.display='flex';
  const r=P.map((p,i)=>({i,n:p.score,c:p.c})).sort((a,b)=>b.n-a.n);
  e.innerHTML=`<h1>Game over</h1>`+r.map(x=>`<div class="box" style="border-left:10px solid ${x.c};font-size:22px">${x.n==r[0].n?'🏆 ':''}Player ${x.i+1} — ${x.n} cards</div>`).join('')+`<button class="gold" onclick="location.reload()">Play again</button>`}
 addEventListener('resize',place);pickers();load();
