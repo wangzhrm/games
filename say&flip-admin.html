@@ -99,7 +99,7 @@ async function save(){const name=$('#name').value.trim();if(!name)return toast('
  await api('words',{method:'POST',body:JSON.stringify(ws.map((w,i)=>({list_id:cur.id,word:w.word,image_url:w.url||null,position:i})))});
  toast('Saved "'+name+'"');loadLists()}catch(e){toast(e.message,7000)}}
 
-// Export: column A = English, column B = Chinese (machine translation, please review in Excel).
+// Export: column A = English, column B = Chinese (Simplified Chinese machine translation, please review in Excel).
 // The file can be imported straight into the RQuiz Creator page.
 async function exportXlsx(){
  const ws=cur.words.filter(w=>w.word);
@@ -110,7 +110,7 @@ async function exportXlsx(){
   $('#prog').textContent=`Translating ${++n}/${ws.length}…`;
   let zh='';
   try{
-   const r=await(await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(w.word)+'&langpair=en|zh-TW')).json();
+   const r=await(await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(w.word)+'&langpair=en|zh-CN')).json();
    zh=r.responseData?.translatedText||'';
    if(/MYMEMORY WARNING|INVALID|QUERY LENGTH/i.test(zh))zh='';
   }catch(e){}
