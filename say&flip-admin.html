@@ -9,10 +9,11 @@
 @media(max-width:800px){body{grid-template-columns:1fr}}
 aside{padding:18px;border-right:1px solid var(--line)}main{padding:18px;max-width:900px}
 h1{font-size:20px;margin:0 0 12px}h2{font-size:16px;margin:18px 0 8px}
-input,textarea,button,select{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
-button{cursor:pointer}button.p{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+input,textarea,button,select,.btn{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+button,.btn{cursor:pointer;display:inline-block}button.p{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
 @media(prefers-color-scheme:dark){button.p{color:#06231f}}
 button.d{color:var(--bad)}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--acc)}
+button:disabled{opacity:.5;cursor:wait}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
 .lst{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin:6px 0;background:var(--card);cursor:pointer}
 .lst.on{border-color:var(--acc);box-shadow:inset 3px 0 var(--acc)}
@@ -36,7 +37,7 @@ textarea{width:100%;height:90px}details{margin-bottom:10px}
 <div id="lists"></div>
 </aside>
 <main>
-<div class="row"><input id="name" placeholder="List name (e.g. Fruits)" style="flex:1;min-width:180px"><button class="p" onclick="save()">Save to Supabase</button><button onclick="printList()">🖨 Print / save as PDF</button></div>
+<div class="row"><input id="name" placeholder="List name (e.g. Fruits)" style="flex:1;min-width:180px"><button class="p" onclick="save()">Save to Supabase</button><button onclick="printList()">🖨 Print / save as PDF</button><button id="expBtn" onclick="exportXlsx()">⬇ Export Excel (English + Chinese)</button></div>
 <h2>Add words</h2>
 <textarea id="bulk" placeholder="One word per line (aim for 8+ words per list)"></textarea>
 <div class="row"><button onclick="addBulk()">Add typed words</button>
@@ -46,16 +47,19 @@ textarea{width:100%;height:90px}details{margin-bottom:10px}
 <div id="words"></div>
 </main><div id="msg"></div><div id="pa"></div>
 <script>
-const $=s=>document.querySelector(s);let cfg={url:'https://btwdbphheotbqrmbswgk.supabase.co',key:'sb_publishable_9lY3A1HrgERNIC597NEAKQ_YTCmkh2k'};
-let cur={id:null,words:[]};
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=s=>document.querySelector(s);
+const DEFAULT_CFG={url:'https://btwdbphheotbqrmbswgk.supabase.co',key:'sb_publishable_9lY3A1HrgERNIC597NEAKQ_YTCmkh2k'};
+let cfg=DEFAULT_CFG;
+try{const s=JSON.parse(localStorage.sbcfg||'null');if(s&&s.url&&s.key)cfg=s}catch(e){}
+let cur={id:null,words:[]},listsCache=[];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(t,ms=3500){const m=$('#msg');m.textContent=t;m.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>m.style.display='none',ms)}
 async function api(p,o={}){if(!cfg.url)throw Error('Enter your Supabase URL and key first');
  const r=await fetch(cfg.url.replace(/\/$/,'')+'/rest/v1/'+p,{...o,headers:{apikey:cfg.key,Authorization:'Bearer '+cfg.key,'Content-Type':'application/json',Prefer:'return=representation',...o.headers}});
  if(!r.ok)throw Error(await r.text());return r.json().catch(()=>null)}
-function saveCfg(){cfg={url:$('#url').value.trim(),key:$('#key').value.trim()};localStorage.sbcfg=JSON.stringify(cfg);loadLists()}
-async function loadLists(){try{const d=await api('lists?select=id,name,words(count)&order=name');
- $('#lists').innerHTML=d.map(l=>`<div class="lst ${l.id==cur.id?'on':''}" onclick="openList('${l.id}')"><span>${esc(l.name)} <small>(${l.words[0]?.count||0})</small></span><button class="d" title="Delete list" onclick="event.stopPropagation();delList('${l.id}','${esc(l.name)}')">✕</button></div>`).join('')||'<p>No saved lists yet.</p>'}
+function saveCfg(){cfg={url:$('#url').value.trim(),key:$('#key').value.trim()};try{localStorage.sbcfg=JSON.stringify(cfg)}catch(e){}loadLists()}
+async function loadLists(){try{listsCache=await api('lists?select=id,name,words(count)&order=name');
+ $('#lists').innerHTML=listsCache.map((l,i)=>`<div class="lst ${l.id==cur.id?'on':''}" onclick="openList(listsCache[${i}].id)"><span>${esc(l.name)} <small>(${l.words[0]?.count||0})</small></span><button class="d" title="Delete list" onclick="event.stopPropagation();delList(${i})">✕</button></div>`).join('')||'<p>No saved lists yet.</p>'}
  catch(e){$('#lists').innerHTML='<p>Not connected.</p>';toast(e.message)}}
 async function printList(){const ws=cur.words.filter(w=>w.word);if(!ws.length)return toast('Open or create a list with words first');
  $('#pa').innerHTML=`<h1>${esc($('#name').value||'Vocabulary list')} (${ws.length} words)</h1><div class="pg">`+ws.map(w=>`<div class="pc">${w.url?`<img src="${esc(w.url)}" alt="">`:'<div class="nb">no image</div>'}<b>${esc(w.word)}</b></div>`).join('')+'</div>';
@@ -64,17 +68,20 @@ async function printList(){const ws=cur.words.filter(w=>w.word);if(!ws.length)re
 function newList(){cur={id:null,words:[]};$('#name').value='';$('#bulk').value='';render();loadLists()}
 async function openList(id){try{const d=await api(`lists?id=eq.${id}&select=id,name,words(word,image_url,position)`);
  const l=d[0];cur={id:l.id,words:l.words.sort((a,b)=>a.position-b.position).map(w=>({word:w.word,url:w.image_url||''}))};$('#name').value=l.name;$('#bulk').value=cur.words.map(w=>w.word).join('\n');render();loadLists()}catch(e){toast(e.message)}}
-async function delList(id,n){if(!confirm('Delete list "'+n+'" and all its words?'))return;try{await api('lists?id=eq.'+id,{method:'DELETE'});if(cur.id==id)newList();loadLists()}catch(e){toast(e.message)}}
+async function delList(i){const l=listsCache[i];if(!l||!confirm('Delete list "'+l.name+'" and all its words?'))return;try{await api('words?list_id=eq.'+l.id,{method:'DELETE'});await api('lists?id=eq.'+l.id,{method:'DELETE'});if(cur.id==l.id)newList();else loadLists()}catch(e){toast(e.message)}}
+function setUrl(i,v){v=v.trim();if(v==='(uploaded image)')return;cur.words[i].url=v;render()}
 function render(){$('#cnt').textContent='('+cur.words.length+')';
  $('#words').innerHTML=cur.words.map((w,i)=>`<div class="w"><input type="text" value="${esc(w.word)}" onchange="cur.words[${i}].word=this.value.trim()">
  ${w.url?`<img src="${esc(w.url)}" alt="">`:`<div class="ph">${w.miss?'not found':'no image'}</div>`}
- <div class="row" style="margin:0"><input type="text" placeholder="Image URL" value="${w.url.startsWith('data:')?'(uploaded image)':esc(w.url)}" style="flex:1;min-width:120px" onchange="cur.words[${i}].url=this.value.trim();render()">
- <button onclick="findOne(${i}).then(render)">Find</button><label><input type="file" accept="image/*" hidden onchange="upl(${i},this)"><button type="button" onclick="this.previousElementSibling.click()">Upload</button></label></div>
+ <div class="row" style="margin:0"><input type="text" placeholder="Image URL" value="${w.url.startsWith('data:')?'(uploaded image)':esc(w.url)}" style="flex:1;min-width:120px" onchange="setUrl(${i},this.value)">
+ <button onclick="findOne(${i}).then(render)">Find</button><label class="btn">Upload<input type="file" accept="image/*" hidden onchange="upl(${i},this)"></label></div>
  <button class="d" onclick="cur.words.splice(${i},1);render()">Remove</button></div>`).join('')}
 function addWords(a){const s=new Set(cur.words.map(w=>w.word.toLowerCase()));a.map(x=>String(x??'').trim()).filter(x=>x&&!s.has(x.toLowerCase())&&s.add(x.toLowerCase())).forEach(x=>cur.words.push({word:x,url:''}));render()}
 function addBulk(){addWords($('#bulk').value.split(/\n/));$('#bulk').value=''}
 function xl(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{const wb=XLSX.read(e.target.result,{type:'array'});
- const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});addWords(rows.map(r=>r[0]));inp.value=''};r.readAsArrayBuffer(f)}
+ const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
+ // skip header cells such as "English" / "Vocabulary" (as in exported files)
+ addWords(rows.map(r=>r[0]).filter(x=>!/^(english|vocabulary|word)$/i.test(String(x??'').trim())));inp.value=''};r.readAsArrayBuffer(f)}
 // All auto images come from ONE icon set (Fluent Emoji Flat) so they share a style.
 const SET='fluent-emoji-flat';
 async function findOne(i){const w=cur.words[i];try{
@@ -91,5 +98,31 @@ async function save(){const name=$('#name').value.trim();if(!name)return toast('
  else{const d=await api('lists',{method:'POST',body:JSON.stringify({name})});cur.id=d[0].id}
  await api('words',{method:'POST',body:JSON.stringify(ws.map((w,i)=>({list_id:cur.id,word:w.word,image_url:w.url||null,position:i})))});
  toast('Saved "'+name+'"');loadLists()}catch(e){toast(e.message,7000)}}
+
+// Export: column A = English, column B = Chinese (machine translation, please review in Excel).
+// The file can be imported straight into the RQuiz Creator page.
+async function exportXlsx(){
+ const ws=cur.words.filter(w=>w.word);
+ if(!ws.length)return toast('Open a list with words first');
+ const btn=$('#expBtn');btn.disabled=true;
+ const rows=[['English','Chinese']];let n=0,fail=0;
+ for(const w of ws){
+  $('#prog').textContent=`Translating ${++n}/${ws.length}…`;
+  let zh='';
+  try{
+   const r=await(await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(w.word)+'&langpair=en|zh-TW')).json();
+   zh=r.responseData?.translatedText||'';
+   if(/MYMEMORY WARNING|INVALID|QUERY LENGTH/i.test(zh))zh='';
+  }catch(e){}
+  if(!zh)fail++;
+  rows.push([w.word,zh]);
+ }
+ $('#prog').textContent='';btn.disabled=false;
+ const wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Vocab');
+ XLSX.writeFile(wb,($('#name').value.trim()||'vocab').replace(/[\\/:*?"<>|]/g,'_')+'.xlsx');
+ toast('Exported '+ws.length+' words'+(fail?' ('+fail+' blank translations)':'')+'. Please check the Chinese column before importing.',8000);
+}
+
 $('#url').value=cfg.url||'';$('#key').value=cfg.key||'';if(!cfg.url)$('#cfgbox').open=true;else{loadLists()}render();
 </script></body></html>
