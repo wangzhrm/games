@@ -26,8 +26,17 @@ button.on,button.big{background:var(--accent);color:#fff;border-color:var(--acce
 button.big{font-weight:700;padding:12px;width:100%}
 .row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
 .row>button{flex:1 1 auto}
+.pcrow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pcrow b{width:64px;font-size:13px}
+.pcrow .sws{display:flex;gap:6px;flex-wrap:wrap}
+.row>button.sw,.sw{flex:0 0 28px;width:28px;height:28px;padding:0;border-radius:50%;border:2px solid #0006}
+.sw.sel{outline:3px solid var(--accent);outline-offset:2px}
+.sw.used{opacity:.3}
 #boardwrap{background:var(--sea);border-radius:16px;padding:4px}
 svg{width:100%;height:auto;max-height:calc(100vh - 150px);min-height:480px;display:block;touch-action:manipulation}
+.glow{fill:#fff6b0;stroke:#fff;stroke-width:5;stroke-linejoin:round;animation:glow 1.2s ease-in-out infinite}
+@keyframes glow{0%,100%{fill-opacity:0;stroke-opacity:.15}50%{fill-opacity:.75;stroke-opacity:1}}
+@media (prefers-reduced-motion:reduce){.glow{animation-duration:2.4s}}
 .dice{display:flex;align-items:center;gap:10px}
 .die{font-size:60px;line-height:1;user-select:none}
 .die.roll{animation:sh .12s infinite}
@@ -53,7 +62,9 @@ svg{width:100%;height:auto;max-height:calc(100vh - 150px);min-height:480px;displ
 const S=50,R3=Math.sqrt(3),$=s=>document.querySelector(s);
 const RES={wood:{c:'#2f7d3a',e:'🌲'},brick:{c:'#c2603a',e:'🧱'},sheep:{c:'#9ccc65',e:'🐑'},wheat:{c:'#e9c446',e:'🌾'},ore:{c:'#8a94a0',e:'⛰️'},desert:{c:'#e3cf9a',e:'🏜️'}};
 const STD={wood:4,brick:3,sheep:4,wheat:4,ore:3,desert:1};
-const PL=[{n:'Red',c:'#d6322f'},{n:'Blue',c:'#2563eb'},{n:'Orange',c:'#f08a1c'},{n:'White',c:'#f5f5f5'}];
+const PAL=[{n:'Red',c:'#d6322f'},{n:'Blue',c:'#2563eb'},{n:'Orange',c:'#f08a1c'},{n:'White',c:'#f5f5f5'},{n:'Green',c:'#16a34a'},{n:'Purple',c:'#9333ea'},{n:'Yellow',c:'#facc15'},{n:'Pink',c:'#ec4899'}];
+const PL=PAL.slice(0,4).map(p=>({...p})),pick=[0,1,2,3];
+const applyColours=()=>pick.forEach((j,i)=>{PL[i].n=PAL[j].n;PL[i].c=PAL[j].c});
 const LIM={road:15,settlement:5,city:4},FACE='⚀⚁⚂⚃⚄⚅';
 const REC=[['wheat',9],['wood',8],['brick',5],['wheat',12],['wood',11],['ore',3],['wheat',6],['ore',10],['brick',6],['desert',0],['wheat',4],['sheep',11],['sheep',2],['sheep',4],['wood',3],['sheep',5],['wood',9],['brick',10],['ore',8]];
 // geometry
@@ -79,7 +90,7 @@ function randomTiles(){const res=shuffle(Object.entries(STD).filter(([k])=>k!=='
  st.tiles=t;st.robber=9;st.sel=null}
 function resetPlay(){Object.assign(st,{roads:{},bld:{},kn:[0,0,0,0],lr:-1,la:-1,len:[],rolled:false,rob:null,kp:false,hl:null,col:'',hist:[],over:false,dice:[1,1]})}
 function newGame(){st.phase='config';st.harbors=shuffle(['3:1','3:1','3:1','3:1','wood','brick','sheep','wheat','ore']);resetPlay();recommended();
- say('Choose the number of players and set up the land tiles. A recommended layout is already loaded.');render()}
+ say('Choose the number of players, pick everyone’s colour, and set up the land tiles. A recommended layout is already loaded.');render()}
 function start(){st.robber=9;st.phase='setup';resetPlay();const o=[...Array(st.n).keys()];st.seq=[...o,...o.reverse()];st.si=0;st.cur=st.seq[0];st.step='village';st.tool='settlement';st.sel=null;
  say(`${PL[st.cur].n}: place your first village anywhere on a corner.`);render()}
 // rules
@@ -102,8 +113,8 @@ function longest(p){const blocked=v=>st.bld[v]&&st.bld[v].p!==p;
  const dfs=(v,used)=>{let m=0;for(const e of V.get(v).ed){if(st.roads[e]!==p||used.has(e))continue;const d=E.get(e),w=d.a===v?d.b:d.a;used.add(e);m=Math.max(m,1+(blocked(w)?0:dfs(w,used)));used.delete(e)}return m};
  let b=0;V.forEach(v=>b=Math.max(b,dfs(v.k,new Set())));return b}
 function awards(){const L=[...Array(st.n).keys()].map(longest),K=st.kn.slice(0,st.n);
- const pick=(a,min,c)=>{const m=Math.max(...a);if(m<min)return-1;const ld=a.map((v,i)=>v===m?i:-1).filter(i=>i>=0);return ld.includes(c)?c:ld.length===1?ld[0]:-1};
- st.lr=pick(L,5,st.lr);st.la=pick(K,3,st.la);st.len=L}
+ const pickL=(a,min,c)=>{const m=Math.max(...a);if(m<min)return-1;const ld=a.map((v,i)=>v===m?i:-1).filter(i=>i>=0);return ld.includes(c)?c:ld.length===1?ld[0]:-1};
+ st.lr=pickL(L,5,st.lr);st.la=pickL(K,3,st.la);st.len=L}
 const score=p=>cnt(p,'settlement')+2*cnt(p,'city')+(st.lr===p?2:0)+(st.la===p?2:0);
 function gain(k){const g={};hexes.forEach(h=>{if(h.v.includes(k)&&st.tiles[h.i].r!=='desert'){const r=st.tiles[h.i].r;g[r]=(g[r]||0)+1}});return Object.entries(g).map(([r,v])=>RES[r].e+' ×'+v).join(', ')}
 // actions
@@ -125,7 +136,7 @@ function act(kind,k){
  if(st.phase==='setup'){
   if(st.step==='village'){st.lastV=k;st.step='road';st.tool='road';
    say(`${PL[p].n}: now place a road touching that village.`+(st.si>=st.n?` (Second village: take ${gain(k)||'no cards'}.)`:''))}
-  else{st.si++;st.hist=[];if(st.si>=st.seq.length){st.phase='play';st.cur=0;st.tool='road';say('Setup complete! Red starts. Roll the dice.')}
+  else{st.si++;st.hist=[];if(st.si>=st.seq.length){st.phase='play';st.cur=0;st.tool='road';say(`Setup complete! ${PL[0].n} starts. Roll the dice.`)}
    else{st.cur=st.seq[st.si];st.step='village';st.tool='settlement';say(`${PL[st.cur].n}: place your ${st.si>=st.n?'second':'first'} village.`)}}}
  else say(`${PL[p].n} built a ${t==='settlement'?'village':t}.`);
  render()}
@@ -148,8 +159,9 @@ function render(){
  if(st.phase==='play'&&!st.over&&score(st.cur)>=10){st.over=true;say(`🏆 ${PL[st.cur].n} wins with ${score(st.cur)} points!`)}
  let h='';
  hexes.forEach(x=>{const t=st.tiles[x.i],pts=x.v.map(k=>V.get(k).x.toFixed(1)+','+V.get(k).y.toFixed(1)).join(' ');
-  const hot=st.hl&&t.n===st.hl&&st.robber!==x.i,sel=st.sel===x.i,mv=st.rob&&st.robber!==x.i,w=hot||sel||mv;
+  const hot=st.hl&&t.n===st.hl&&st.robber!==x.i,sel=st.sel===x.i,mv=st.rob&&st.robber!==x.i,w=sel||mv;
   h+=`<polygon points="${pts}" fill="${RES[t.r].c}" stroke="${w?'#fff':'#5a4630'}" stroke-width="${w?5:2}" ${mv?'stroke-dasharray="6 4"':''} data-h="${x.i}" style="cursor:${mv||st.phase==='config'?'pointer':'default'}"/>`;
+  if(hot)h+=`<polygon class="glow" points="${pts}" pointer-events="none"/>`;
   const nm=$('#names').checked;h+=`<text x="${x.x}" y="${x.y-(nm?25:18)}" text-anchor="middle" font-size="18" pointer-events="none">${RES[t.r].e}</text>`+(nm?`<text x="${x.x}" y="${x.y-9}" text-anchor="middle" font-size="10" font-weight="700" fill="#1a1208" stroke="#fffb" stroke-width="2.5" paint-order="stroke" pointer-events="none">${t.r[0].toUpperCase()+t.r.slice(1)}</text>`:'');
   if(t.n)h+=`<circle cx="${x.x}" cy="${x.y+8}" r="14" fill="#f6ecd2" stroke="#5a4630" pointer-events="none"/><text x="${x.x}" y="${x.y+13.5}" text-anchor="middle" font-size="15" font-weight="700" fill="${t.n===6||t.n===8?'#c0261f':'#2a2118'}" pointer-events="none">${t.n}</text>`;
   if(st.robber===x.i)h+=`<ellipse cx="${x.x+20}" cy="${x.y+22}" rx="9" ry="12" fill="#222" stroke="#fff" stroke-width="2" pointer-events="none"/><circle cx="${x.x+20}" cy="${x.y+8}" r="6" fill="#222" stroke="#fff" stroke-width="2" pointer-events="none"/>`});
@@ -169,6 +181,7 @@ function render(){
 function side(){let h='';
  if(st.phase==='config'){
   h+=`<div class="card"><h2>Number of players</h2><div class="row">${[2,3,4].map(k=>`<button class="${st.n===k?'on':''}" data-n="${k}">${k} players</button>`).join('')}</div></div>`;
+  h+=`<div class="card"><h2>Player colours</h2>${[...Array(st.n).keys()].map(i=>`<div class="pcrow"><b>Player ${i+1}</b><div class="sws">${PAL.map((c,j)=>`<button class="sw ${pick[i]===j?'sel':''} ${pick[i]!==j&&pick.slice(0,st.n).includes(j)?'used':''}" style="background:${c.c}" data-pc="${i},${j}" title="${c.n}" aria-label="Player ${i+1}: ${c.n}"></button>`).join('')}</div></div>`).join('')}<div class="small">Player 1 goes first. Picking a colour another player already has swaps the two.</div></div>`;
   const t=st.tiles[st.sel],c={};st.tiles.forEach(x=>c[x.r]=(c[x.r]||0)+1);
   const ok=Object.keys(STD).every(k=>(c[k]||0)===STD[k]);
   h+=`<div class="card"><h2>Land tiles</h2><div class="row"><button data-act="rec">⭐ Recommended</button><button data-act="rand">🎲 Random</button></div>
@@ -193,6 +206,7 @@ function side(){let h='';
 $('#board').addEventListener('click',e=>{const d=e.target.dataset;if(d.v)act('v',d.v);else if(d.e)act('e',d.e);else if(d.h!==undefined)act('h',d.h)});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
  if(d.n){st.n=+d.n;render()}
+ else if(d.pc){const[i,j]=d.pc.split(',').map(Number),o=pick.indexOf(j);if(o>=0&&o!==i)pick[o]=pick[i];pick[i]=j;applyColours();render()}
  else if(d.res){const t=st.tiles[st.sel];t.r=d.res;t.n=t.n||5;render()}
  else if(d.num){st.tiles[st.sel].n=+d.num;render()}
  else if(d.t){st.tool=d.t;say({road:'Tap a dotted edge to build a road.',settlement:'Tap a highlighted corner to build a village.',city:'Tap one of your villages to upgrade it.'}[d.t]);render()}
