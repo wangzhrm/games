@@ -50,13 +50,16 @@ svg{width:100%;height:auto;max-height:calc(100vh - 150px);min-height:480px;displ
 .small{font-size:12px;color:var(--muted);line-height:1.5}
 .vp{font-size:26px;font-weight:700}
 #msg{min-height:20px;font-size:14px}
+html.fs header,html.fs #msgcard{display:none}
+html.fs main{padding-top:8px;padding-bottom:8px}
+html.fs svg{min-height:0;max-height:calc(100vh - 28px)}
 </style>
 </head>
 <body>
 <header><h1>🏝️ Catan Board Companion</h1><button data-act="fs">⛶ Full screen</button><button data-act="newgame">New game</button></header>
 <main>
 <div><div id="boardwrap"><svg id="board" viewBox="-255 -265 510 530" role="img" aria-label="Catan board"></svg></div>
-<div class="card" style="margin-top:10px"><div id="msg"></div></div></div>
+<div class="card" id="msgcard" style="margin-top:10px"><div id="msg"></div></div></div>
 <div style="display:grid;gap:12px;align-content:start"><div class="card"><label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" id="names"> Show resource names under the icons</label></div><div id="side" style="display:grid;gap:12px;align-content:start"></div></div>
 </main>
 <script>
@@ -212,7 +215,7 @@ function toggleFs(){const d=document,el=d.documentElement,on=d.fullscreenElement
   if(!f)return say('This browser does not offer full screen here. On iPhone, use Share → Add to Home Screen, then open it from the home screen.');
   const p=f.call(el);if(p&&p.catch)p.catch(()=>say('Full screen was blocked here. Try the browser’s own full-screen key (F11 on Windows, Ctrl+Cmd+F on Mac).'))}
  catch(e){say('Full screen was blocked here. Try the browser’s own full-screen key (F11 on Windows, Ctrl+Cmd+F on Mac).')}}
-const fsLabel=()=>{const b=$('[data-act=fs]');if(b)b.textContent=(document.fullscreenElement||document.webkitFullscreenElement)?'⛶ Exit full screen':'⛶ Full screen'};
+const fsLabel=()=>{const on=!!(document.fullscreenElement||document.webkitFullscreenElement),b=$('[data-act=fs]');document.documentElement.classList.toggle('fs',on);if(b)b.textContent=on?'⛶ Exit full screen':'⛶ Full screen'};
 document.addEventListener('fullscreenchange',fsLabel);document.addEventListener('webkitfullscreenchange',fsLabel);
 // events
 $('#board').addEventListener('click',e=>{const d=e.target.dataset;if(d.v)act('v',d.v);else if(d.e)act('e',d.e);else if(d.h!==undefined)act('h',d.h)});
