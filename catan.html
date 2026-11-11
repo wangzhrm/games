@@ -10,6 +10,7 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17130f;--panel:#241e17;--text:#f1e8d8;--muted:#a89880;--line:#40372b;--sea:#1d4468;--btn:#352c20;--accent:#e58a4b;}}
 :root[data-theme="dark"]{--bg:#17130f;--panel:#241e17;--text:#f1e8d8;--muted:#a89880;--line:#40372b;--sea:#1d4468;--btn:#352c20;--accent:#e58a4b;}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{overscroll-behavior:none}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
@@ -52,7 +53,7 @@ svg{width:100%;height:auto;max-height:calc(100vh - 150px);min-height:480px;displ
 </style>
 </head>
 <body>
-<header><h1>🏝️ Catan Board Companion</h1><button data-act="newgame">New game</button></header>
+<header><h1>🏝️ Catan Board Companion</h1><button data-act="fs">⛶ Full screen</button><button data-act="newgame">New game</button></header>
 <main>
 <div><div id="boardwrap"><svg id="board" viewBox="-255 -265 510 530" role="img" aria-label="Catan board"></svg></div>
 <div class="card" style="margin-top:10px"><div id="msg"></div></div></div>
@@ -202,6 +203,17 @@ function side(){let h='';
   else h+=`<div class="card"><div class="row"><button data-act="undo">↩ Undo village</button></div><div class="small">Snake order: 1→${st.n}, then ${st.n}→1. Your second village earns cards from its neighbouring tiles.</div></div>`;
   h+=`<div class="card"><h2>Scores (first to 10)</h2>${PL.slice(0,st.n).map((q,i)=>`<div class="pl ${st.cur===i?'cur':''}"><span class="dot" style="background:${q.c}"></span><div><b>${q.n}</b><div class="small">⚔️ Knights played: ${st.kn[i]||0} · Longest road: ${(st.len[i]||0)}</div><div class="small">${st.lr===i?'🛣️ Longest Road (+2) ':''}${st.la===i?'⚔️ Largest Army (+2)':''}</div></div><span class="vp">${score(i)}</span></div>`).join('')}</div>`}
  $('#side').innerHTML=h}
+// refresh / close protection: the browser asks for confirmation once a game is under way
+window.addEventListener('beforeunload',e=>{if(st.phase==='config'||st.over)return;e.preventDefault();e.returnValue=''});
+// full screen
+function toggleFs(){const d=document,el=d.documentElement,on=d.fullscreenElement||d.webkitFullscreenElement;
+ try{if(on){(d.exitFullscreen||d.webkitExitFullscreen).call(d);return}
+  const f=el.requestFullscreen||el.webkitRequestFullscreen;
+  if(!f)return say('This browser does not offer full screen here. On iPhone, use Share → Add to Home Screen, then open it from the home screen.');
+  const p=f.call(el);if(p&&p.catch)p.catch(()=>say('Full screen was blocked here. Try the browser’s own full-screen key (F11 on Windows, Ctrl+Cmd+F on Mac).'))}
+ catch(e){say('Full screen was blocked here. Try the browser’s own full-screen key (F11 on Windows, Ctrl+Cmd+F on Mac).')}}
+const fsLabel=()=>{const b=$('[data-act=fs]');if(b)b.textContent=(document.fullscreenElement||document.webkitFullscreenElement)?'⛶ Exit full screen':'⛶ Full screen'};
+document.addEventListener('fullscreenchange',fsLabel);document.addEventListener('webkitfullscreenchange',fsLabel);
 // events
 $('#board').addEventListener('click',e=>{const d=e.target.dataset;if(d.v)act('v',d.v);else if(d.e)act('e',d.e);else if(d.h!==undefined)act('h',d.h)});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
@@ -213,7 +225,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
  else if(d.act==='rec'){recommended();say('Recommended layout loaded: desert and robber in the middle.');render()}
  else if(d.act==='rand'){randomTiles();say('Random layout loaded.');render()}
  else if(d.act==='start')start();else if(d.act==='roll')roll();else if(d.act==='knight')knight();
- else if(d.act==='undo')undo();else if(d.act==='end')endTurn();
+ else if(d.act==='undo')undo();else if(d.act==='end')endTurn();else if(d.act==='fs')toggleFs();
  else if(d.act==='newgame'&&confirm('Start a new game? The current board and pieces will be cleared.'))newGame()});
 $('#names').addEventListener('change',render);
 newGame();
