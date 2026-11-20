@@ -55,7 +55,18 @@ body.slay #ph{background:#b0102a}
 
 <script>
 const $=id=>document.getElementById(id);
+const TCB_ENV='civil-prawn-d0gflguvzee35fad8';
+const TCB_REST_URL=`https://${TCB_ENV}.api.tcloudbasegateway.com/v1/rdb/rest`;
+const TCB_PUBLISHABLE_KEY='eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw';
 const sb=supabase.createClient('https://btwdbphheotbqrmbswgk.supabase.co','sb_publishable_9lY3A1HrgERNIC597NEAKQ_YTCmkh2k');
+async function tcbSelect(path){
+  const r=await fetch(`${TCB_REST_URL}/${path}`,{
+    headers:{apikey:TCB_PUBLISHABLE_KEY,Authorization:`Bearer ${TCB_PUBLISHABLE_KEY}`}
+  });
+  const j=await r.json().catch(()=>null);
+  if(!r.ok)return[];
+  return Array.isArray(j)?j:[];
+}
 const cv=$('c'),x=cv.getContext('2d'),SP=270;
 const AV=['🐱','🐶','🦊','🐼','🐸','🐵','🦁','🐯','🐰','🐨','🐷','🐙','🦄','🐧','🐢','🦉'];
 const hs=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))|0,7)>>>0,av=n=>pl[n]&&pl[n].a||'🙂',col=n=>`hsl(${pl[n]?pl[n].h:0},80%,58%)`;
@@ -64,7 +75,6 @@ const fmt=r=>{const s=Math.ceil(r/1000);return (s/60|0)+':'+String(s%60).padStar
 let me,ch,pch,S,off=0,pl={},M={x:0,y:0},inited=0,keys={},ptr=null,qb=null,picked,done=new Set(),ph0='',lastSend=0,lastPos='',shake=0,parts=[],fl=[],lastSec=-1,ac,near={b:-1,p:null},sv=-1,lbT=0,last=0,known={},lastTrack=0,at,outMsg="💀 You're out of duels — keep opening boxes!";
 let sd=12345;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
 const DEC=[];for(let i=0;i<140;i++)DEC.push({x:rnd()*2400,y:rnd()*1600,e:['🌳','🌲','🌷','🍄','🪨','🌻','🌿'][i%7],s:24+rnd()*24|0});
-// main channel (broadcast from teacher to everyone) + private channel (only me <-> teacher)
 const tx=(e,p)=>ch&&ch.send({type:'broadcast',event:e,payload:p});
 const txp=(e,p)=>pch&&pch.send({type:'broadcast',event:e,payload:p});
 
@@ -77,16 +87,18 @@ const float=(t,px,py,c)=>fl.push({t,x:px,y:py,c,l:60});
 
 async function login(){ac=ac||new AudioContext();
  const u=$('u').value.trim(),p=$('p').value;
- let ok=!!(await sb.from('student_accounts').select('username').eq('username',u).eq('password',p).maybeSingle()).data;
- if(!ok){const b=await sb.from('trading_students').select('*').eq('username',u);
-  ok=(b.data||[]).some(r=>{const k=Object.keys(r).find(k=>/pass|pwd|pin/i.test(k));return k&&String(r[k])===p})}
+ const eu=encodeURIComponent(u),ep=encodeURIComponent(p);
+ const accRows=await tcbSelect(`student_accounts?select=username&username=eq.${eu}&password=eq.${ep}&limit=1`);
+ let ok=accRows.length>0;
+ if(!ok){
+  const trRows=await tcbSelect(`trading_students?select=*&username=eq.${eu}`);
+  ok=trRows.some(r=>{const k=Object.keys(r).find(k=>/pass|pwd|pin/i.test(k));return k&&String(r[k])===p});
+ }
  if(!ok)return $('er').style.display='block';
  sessionStorage.va_u=u;enter(u)}
-// sessionStorage: each browser tab/device keeps its own player and can resume it after a refresh
 if(sessionStorage.va_u)setTimeout(()=>enter(sessionStorage.va_u),0);
 
 const bad=s=>['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(s);
-// if a channel is not joined a few seconds after an error, throw it away and build a fresh one
 function retry(c,f){toast('Connection lost, reconnecting…');setTimeout(()=>{if(c.dead||c.state==='joined')return;c.dead=1;sb.removeChannel(c);f()},3000+Math.random()*3000)}
 
 function joinMain(){
@@ -106,12 +118,10 @@ function joinPriv(){
 
 function enter(u){me=u;$('lg').style.display='none';$('lb0').style.display='flex';
  joinMain();joinPriv();
- // when the phone/tab wakes up again, announce ourselves again
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ch&&ch.state==='joined')ch.track({u:me,t:Date.now()})});
  onresize();requestAnimationFrame(loop)}
 
 function onSt(m){
- // st messages may omit boxes / duel log (they are only sent when changed): reuse the last known ones
  if(m.p!=='lobby'){if(!m.b&&S&&S.b)m.b=S.b;if(!m.dl&&S&&S.dl)m.dl=S.dl;if(!m.b)return}
  S=m;off=m.n-Date.now();
  if(m.p==='lobby'){if(ph0!=='lobby'){pl={};inited=0;done.clear();known={};outMsg="💀 You're out of duels — keep opening boxes!";ph0='lobby';$('end').style.display='none';document.body.classList.remove('slay');$('cd').style.display='none'}
@@ -121,7 +131,6 @@ function onSt(m){
  const mp=pl[me];
  if(!mp){$('lb0').style.display='flex';
   if(m.p==='explore'){$('lm').textContent='Joining the round…';
-   // the teacher adds us automatically during the explore phase; re-announce presence in case it was missed
    if(ch&&ch.state==='joined'&&Date.now()-lastTrack>3000){lastTrack=Date.now();ch.track({u:me,t:Date.now()})}}
   else $('lm').textContent='A game is already running — wait for the next round!';
   return}
@@ -141,7 +150,6 @@ function showEnd(){qb=null;$('qm').style.display='none';$('cd').style.display='n
 function showQ(m){clearTimeout(ot);clearTimeout(at);otries=0;qb=m.b;$('qw').textContent=m.w;const o=$('qo');o.innerHTML='';
  m.o.forEach((t,i)=>{const b=document.createElement('button');b.textContent=t;
   b.onclick=()=>{picked=b;[...o.children].forEach(z=>z.disabled=1);const a={u:me,b:qb,i};txp('ans',a);
-   // safety net: if the answer or the reply is lost, resend once, then give up and unlock the screen
    clearTimeout(at);at=setTimeout(()=>{if(qb!==null){txp('ans',a);at=setTimeout(()=>{if(qb!==null){toast('Connection problem, please try again');closeQ()}},3000)}},3000)};
   o.appendChild(b)});
  $('qm').style.display='flex';beep(520,.1)}
@@ -182,7 +190,6 @@ function step(dt,t){
   const l=Math.hypot(dx,dy);if(l){M.x=cl(M.x+dx/l*SP*dt,20,S.W-20);M.y=cl(M.y+dy/l*SP*dt,20,S.H-20)}}
  mp.dx=M.x;mp.dy=M.y;
  for(const k in pl)if(k!==me){const p=pl[k];p.dx+=(p.x-p.dx)*Math.min(1,dt*8);p.dy+=(p.y-p.dy)*Math.min(1,dt*8)}
- // position is sent only to the teacher (private channel), twice a second
  if(on&&t-lastSend>500){const k=(M.x|0)+','+(M.y|0);if(k!==lastPos||t-lastSend>3000){txp('pos',{u:me,x:M.x|0,y:M.y|0});lastPos=k;lastSend=t}}
  near={b:-1,p:null};
  if(on&&qb===null){let bd=90;if(S.p==='explore'||S.bx!==0)S.b.forEach((b,i)=>{const d=Math.hypot(b[0]-M.x,b[1]-M.y);if(!done.has(i)&&d<bd){bd=d;near.b=i}});
