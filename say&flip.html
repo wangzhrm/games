@@ -44,7 +44,7 @@ h1{font-size:40px;margin:0}.box{background:#0006;border-radius:18px;padding:16px
 <div id="setup">
 <h1>Say &amp; Flip</h1>
 <div class="box"><b>Categories</b><div id="cats">Loading…</div>
-<div id="cfg" style="display:none"><input id="url" placeholder="Supabase URL" style="width:100%;margin:4px 0"><input id="key" placeholder="anon / publishable key" style="width:100%"><button class="gold" onclick="saveCfg()" style="margin-top:6px">Connect</button></div></div>
+<div id="cfg" style="display:none"><input id="url" placeholder="CloudBase REST URL" style="width:100%;margin:4px 0"><input id="key" placeholder="anon / publishable key" style="width:100%"><button class="gold" onclick="saveCfg()" style="margin-top:6px">Connect</button></div></div>
 <div class="box"><b>Players</b><div class="num" id="pn"></div><b>Number of animal cards</b><div class="num" id="cn"></div><b>Seconds a wrong card stays face up</b><div class="num" id="fn"></div><b>Turns a wrong card stays locked (0 = no lock)</b><div class="num" id="ln"></div></div>
 <div class="box" style="font-size:15px;line-height:1.5"><b>How to play</b><br>1. On your turn, say an animal name out loud.<br>2. Then flip one card.<br>3. Everyone else taps ✔ if you said that animal before flipping, or ✘ if not.<br>4. ✔ = you keep the card and go again. ✘ = remember where it is, next player!</div>
 <button class="gold" style="font-size:24px;padding:16px 40px" onclick="start()">Deal cards</button>
@@ -56,7 +56,12 @@ h1{font-size:40px;margin:0}.box{background:#0006;border-radius:18px;padding:16px
 <div id="players"></div></div>
 <div id="end" style="display:none"></div>
 <script>
-const $=s=>document.querySelector(s);let cfg={url:'https://btwdbphheotbqrmbswgk.supabase.co',key:'sb_publishable_9lY3A1HrgERNIC597NEAKQ_YTCmkh2k'};
+const $=s=>document.querySelector(s);
+const TCB_ENV='civil-prawn-d0gflguvzee35fad8';
+let cfg={
+  url:`https://${TCB_ENV}.api.tcloudbasegateway.com/v1/rdb/rest`,
+  key:'eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw'
+};
 const COLORS=['#e5484d','#3e63dd','#2f9e44','#9b51e0','#e07b00','#0e8f9c','#c2347a','#6b7280'];
 const SEATS={2:['B50','T50'],3:['B50','T30','T70'],4:['B30','B70','T30','T70'],5:['B30','B70','T30','T70','L50'],6:['B25','B75','T25','T75','L50','R50'],7:['B20','B50','B80','T25','T75','L50','R50'],8:['B20','B50','B80','T20','T50','T80','L50','R50']};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -65,11 +70,22 @@ let lists=[],np=2,cnt=12,fu=3,P=[],deck=[],turn=0,phase='',cur=-1,left=0,tid,LOC
 function pickers(){const row=(id,arr,v,k)=>$(id).innerHTML=arr.map(n=>`<button class="${n==v?'on':''}" onclick="${k}=${n};pickers()">${n}</button>`).join('');
  row('#pn',[2,3,4,5,6,7,8],np,'np');row('#cn',[8,12,16,20,24],cnt,'cnt');row('#fn',[2,3,5],fu,'fu');row('#ln',[0,1,2,3,4,5],LOCK,'LOCK')}
 async function saveCfg(){cfg={url:$('#url').value.trim(),key:$('#key').value.trim()};load()}
-async function load(){if(!cfg.url){$('#cats').textContent='Connect to Supabase to load categories.';$('#cfg').style.display='block';return}
- try{const r=await fetch(cfg.url.replace(/\/$/,'')+'/rest/v1/lists?select=id,name,words(word,image_url)&order=name',{headers:{apikey:cfg.key,Authorization:'Bearer '+cfg.key}});
- if(!r.ok)throw 0;lists=await r.json();
- $('#cats').innerHTML=lists.map((l,i)=>`<label class="cat"><input type="checkbox" value="${i}" ${i==0?'checked':''}>${esc(l.name)} <small>(${l.words.length} words)</small></label>`).join('')||'No lists saved yet.';$('#cfg').style.display='none'}
- catch(e){$('#cats').textContent='Could not load categories. Check the connection details.';$('#cfg').style.display='block'}}
+async function load(){if(!cfg.url){$('#cats').textContent='Connect to CloudBase to load categories.';$('#cfg').style.display='block';return}
+ try{
+  const base=cfg.url.replace(/\/$/,'');
+  const h={apikey:cfg.key,Authorization:'Bearer '+cfg.key};
+  const [lr,wr]=await Promise.all([
+    fetch(base+'/lists?select=id,name&order=name',{headers:h}),
+    fetch(base+'/words?select=id,list_id,word,image_url',{headers:h})
+  ]);
+  if(!lr.ok||!wr.ok)throw 0;
+  const [ls,ws]=await Promise.all([lr.json(),wr.json()]);
+  const byList=new Map();
+  ws.forEach(w=>{if(!byList.has(w.list_id))byList.set(w.list_id,[]);byList.get(w.list_id).push(w)});
+  lists=ls.map(l=>({...l,words:byList.get(l.id)||[]}));
+  $('#cats').innerHTML=lists.map((l,i)=>`<label class="cat"><input type="checkbox" value="${i}" ${i==0?'checked':''}>${esc(l.name)} <small>(${l.words.length} words)</small></label>`).join('')||'No lists saved yet.';
+  $('#cfg').style.display='none';
+ }catch(e){$('#cats').textContent='Could not load categories. Check the connection details.';$('#cfg').style.display='block'}}
 
 /* ---- Background image loader: starts after "Deal cards", retries until each image loads ---- */
 let gen=0,queue=[],active=0;const MAXPAR=4,TIMEOUT=12000;
