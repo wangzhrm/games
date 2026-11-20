@@ -77,12 +77,34 @@ button{font:inherit;cursor:pointer}
 <div id="over"><h1 id="ot"></h1><p id="os"></p><button class="big" id="again">New game (new rulebook)</button><button class="big alt" id="menu">Menu</button></div>
 
 <script>
-// ---- Supabase settings (publishable key only; safe to be in the page) ----
-const SB_URL='https://btwdbphheotbqrmbswgk.supabase.co';
-const SB_KEY='sb_publishable_9lY3A1HrgERNIC597NEAKQ_YTCmkh2k';
-const H={apikey:SB_KEY,'Content-Type':'application/json'};
-async function saveGame(code,rules){const r=await fetch(SB_URL+'/rest/v1/defuse_games',{method:'POST',headers:{...H,Prefer:'return=minimal'},body:JSON.stringify({code,rules})});if(r.status===409)return false;if(!r.ok)throw new Error(await r.text());return true}
-async function loadGame(code){const r=await fetch(`${SB_URL}/rest/v1/defuse_games?code=eq.${code}&select=rules`,{headers:H});if(!r.ok)throw new Error('load');const j=await r.json();return j[0]&&j[0].rules}
+const TCB_ENV='civil-prawn-d0gflguvzee35fad8';
+const TCB_REST_URL=`https://${TCB_ENV}.api.tcloudbasegateway.com/v1/rdb/rest`;
+const TCB_PUBLISHABLE_KEY='eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw';
+const TABLE='bomb_defuse_games';
+const H={'Authorization':`Bearer ${TCB_PUBLISHABLE_KEY}`,'Content-Type':'application/json'};
+
+async function saveGame(code,rules){
+  const r=await fetch(`${TCB_REST_URL}/${TABLE}`,{
+    method:'POST',
+    headers:{...H,Prefer:'return=minimal'},
+    body:JSON.stringify({code,rules})
+  });
+  if(r.status===409)return false;
+  if(!r.ok){
+    const txt=await r.text();
+    if(/duplicate|unique|23505/i.test(txt))return false;
+    throw new Error(txt);
+  }
+  return true;
+}
+
+async function loadGame(code){
+  const q=encodeURIComponent(`eq.${code}`);
+  const r=await fetch(`${TCB_REST_URL}/${TABLE}?code=${q}&select=rules`,{headers:H});
+  if(!r.ok)throw new Error('load');
+  const j=await r.json();
+  return j[0]&&j[0].rules;
+}
 
 const $=s=>document.querySelector(s),rnd=n=>Math.floor(Math.random()*n),pick=a=>a[rnd(a.length)];
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -93,7 +115,6 @@ let AC,G;
 function beep(f,d,t='square',v=.04){try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id))}
 
-// ---- rulebook generator: a new one every game ----
 function genW(n){const T=['none','one','many','last','first','odd','even'],r=[];
   for(let i=0;i<3;i++){const t=pick(T),x=pick(W),oe=t==='odd'||t==='even';let a=['nth',rnd(n)];
     if(!oe&&t!=='none'&&Math.random()<.6)a=[pick(['lastc','firstc']),x];r.push({c:oe?[t]:[t,x],a})}
@@ -103,12 +124,10 @@ function genB(){const C=['red','blue','yellow','white'],L=['ABORT','HOLD','PRESS
 function genRules(){const s=shuf(SYM);return{w:{3:genW(3),4:genW(4),5:genW(5)},b:genB(),s:[0,1,2].map(()=>shuf(SYM).slice(0,7))}}
 function newCode(){const L='ABCDEFGHJKLMNPQRSTUVWXYZ';return Array.from({length:4},()=>pick(L)).join('')}
 
-// ---- rule evaluation ----
 function wOK(c,w,odd){const[t,x]=c,k=w.filter(y=>y===x).length;return t==='none'?!k:t==='one'?k===1:t==='many'?k>1:t==='last'?w[w.length-1]===x:t==='first'?w[0]===x:t==='odd'?odd:!odd}
 function wAns(a,w){return a[0]==='nth'?a[1]:a[0]==='lastc'?w.lastIndexOf(a[1]):w.indexOf(a[1])}
 function bOK(z,col,lab,batt){return(!z.c||z.c===col)&&(!z.l||z.l===lab)&&(!z.b||(z.b==='>1'?batt>1:batt===0))}
 
-// ---- manual text built from the same rules ----
 function cTxt([t,x]){return{none:`there are no ${x} wires`,one:`there is exactly one ${x} wire`,many:`there is more than one ${x} wire`,last:`the last wire is ${x}`,first:`the first wire is ${x}`,odd:"the serial number's last digit is odd",even:"the serial number's last digit is even"}[t]}
 function aTxt(a,n){return a[0]==='nth'?`cut the <b>${a[1]===n-1?'last':ORD[a[1]]}</b> wire`:`cut the <b>${a[0]==='lastc'?'last':'first'} ${a[1]}</b> wire`}
 function manual(R){
@@ -120,7 +139,6 @@ function manual(R){
   h+=`<div class="paper"><h2>Module 3: Symbols</h2><p>The Defuser sees 4 symbols. Find the <b>one column</b> holding all 4, then press them in that column's order, <b>top to bottom</b>. Wrong press = strike.</p><div class="cols">`+R.s.map(c=>`<div class="col">${c.map(s=>`<div>${s}</div>`).join('')}</div>`).join('')+`</div></div>`;
   return h}
 
-// ---- menus ----
 const err=m=>$('#err').textContent=m||'';
 $('#backM').onclick=$('#menu').onclick=()=>{stop();$('#over').classList.remove('on');show('home')};
 $('#quit').onclick=()=>{stop();show('home')};
@@ -140,7 +158,6 @@ async function startGame(){
   if(!code){show('home');return err('Could not save the game online. Check your internet connection and try again.')}
   play(code,R)}
 
-// ---- the bomb ----
 function play(code,R){
   stop();const L='ABCDEFGHJKLMNPQRSTUVWXYZ';
   const serial=pick(L)+pick(L)+rnd(10)+pick(L)+rnd(10)+rnd(10);
