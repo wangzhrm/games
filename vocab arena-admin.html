@@ -51,7 +51,18 @@ button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:not-allow
  <div class="g"><div class="sc"><table><tr><th>#</th><th>Player</th><th>Marks</th><th>Status</th></tr><tbody id="sb"></tbody></table></div><div id="lg" class="sc"></div></div></div>
 
 <script>
+const TCB_ENV='civil-prawn-d0gflguvzee35fad8';
+const TCB_REST_URL=`https://${TCB_ENV}.api.tcloudbasegateway.com/v1/rdb/rest`;
+const TCB_PUBLISHABLE_KEY='eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw';
 const sb=supabase.createClient('https://btwdbphheotbqrmbswgk.supabase.co','sb_publishable_9lY3A1HrgERNIC597NEAKQ_YTCmkh2k');
+async function tcbSelect(path){
+  const r=await fetch(`${TCB_REST_URL}/${path}`,{
+    headers:{apikey:TCB_PUBLISHABLE_KEY,Authorization:`Bearer ${TCB_PUBLISHABLE_KEY}`}
+  });
+  const j=await r.json().catch(()=>null);
+  if(!r.ok)return{data:null,error:{message:(j&&j.message)||r.statusText}};
+  return{data:Array.isArray(j)?j:[],error:null};
+}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cl=(v,a,b)=>Math.min(b,Math.max(a,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -79,8 +90,8 @@ $('xl').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileRead
 const online=()=>new Set(Object.keys(ch?ch.presenceState():{}).filter(k=>k!=='HOST'));
 const pwOf=r=>{const k=Object.keys(r).find(k=>/pass|pwd|pin/i.test(k));return k?r[k]:null};
 async function loadStudents(){
- const a=await sb.from('student_accounts').select('username,password').order('username');
- const b=await sb.from('trading_students').select('*').order('username');
+ const a=await tcbSelect('student_accounts?select=username,password&order=username.asc');
+ const b=await tcbSelect('trading_students?select=*&order=username.asc');
  if(a.error)alert('Load student_accounts failed: '+a.error.message);
  if(b.error)alert('Load trading_students failed: '+b.error.message);
  students=(a.data||[]).map(s=>({username:s.username,password:s.password,src:''}))
@@ -90,13 +101,11 @@ function rs(){const on=online();on.forEach(hook);
  $('st').innerHTML=students.map(s=>`<tr><td><span class="dot ${on.has(s.username)?'on':''}"></span>${esc(s.username)}${s.src?` <small style="background:#e0a800;color:#332;padding:1px 6px;border-radius:5px">${s.src}</small>`:''}</td><td>${esc(s.password)}</td></tr>`).join('');
  $('onc').textContent=on.size+' / '+students.length;if(G)live()}
 
-// ---------- per-student private channels (student <-> host only) ----------
 const pc={};
 const rep=(u,e,p)=>pc[u]&&pc[u].send({type:'broadcast',event:e,payload:p});
 const act=()=>G&&(G.ph==='explore'||(G.ph==='slaughter'&&$('sbx').checked));
 function hook(u){if(pc[u])return;
  const c=pc[u]=sb.channel('p:'+u,{config:{broadcast:{self:false}}});
- // NOTE: the username comes from the channel name (u), never from the message, so nobody can act as someone else
  c.on('broadcast',{event:'pos'},({payload:m})=>{const p=G&&G.P[u];if(p&&G.ph!=='ended'){p.x=cl(m.x,0,G.W);p.y=cl(m.y,0,G.H)}})
  .on('broadcast',{event:'open'},({payload:m})=>{
   if(!act())return rep(u,'res',{u,er:'Boxes are closed right now'});
@@ -108,7 +117,7 @@ function hook(u){if(pc[u])return;
   p.b=m.b;rep(u,'q',{u,b:m.b,w:b.w,o:b.o})})
  .on('broadcast',{event:'ans'},({payload:m})=>{
   const p=G&&G.P[u],b=p&&G.boxes[m.b];if(!b)return;
-  if(b.d.includes(u))return rep(u,'res',{u,b:m.b,er:'Already answered'}); // also unsticks a lost-reply retry
+  if(b.d.includes(u))return rep(u,'res',{u,b:m.b,er:'Already answered'});
   if(!act())return rep(u,'res',{u,er:'Time is up'});
   if(p.b!==m.b)return rep(u,'res',{u,er:'Question expired — open the box again'});
   p.b=null;b.d.push(u);const ok=b.o[m.i]===b.c;p.s=Math.max(0,p.s+(ok?10:-10));
@@ -124,7 +133,6 @@ function hook(u){if(pc[u])return;
  .subscribe(s=>{if(c.dead||pc[u]!==c)return;
   if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(s))setTimeout(()=>{if(c.dead||c.state==='joined'||pc[u]!==c)return;c.dead=1;sb.removeChannel(c);delete pc[u];hook(u)},3000+Math.random()*3000)})}
 
-// ---------- main channel ----------
 function joinMain(){
  const c=ch=sb.channel('vocab-arena',{config:{presence:{key:'HOST'},broadcast:{self:false}}});
  c.on('presence',{event:'sync'},rs)
@@ -136,7 +144,6 @@ function boot(){rv();
  ['sn','ss','sbx'].forEach(id=>{const e=$(id),v=localStorage['va_'+id];if(v!=null)e.checked=v==='1';e.onchange=()=>localStorage['va_'+id]=e.checked?'1':'0'});
  loadStudents();
  joinMain();
- // Web Worker timer: not throttled when this tab is in the background (setInterval is)
  try{const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),200)'])));w.onmessage=()=>tick()}
  catch(e){console.warn('Worker unavailable, using setInterval',e);setInterval(tick,200)}}
 
@@ -149,17 +156,14 @@ function start(){
  const W=2400,H=1600,n=+$('nb').value||12,boxes=[],P={};
  for(let i=0;i<n;i++){const w=v[Math.random()*v.length|0];
   boxes.push({x:150+Math.random()*(W-300),y:150+Math.random()*(H-300),w:w[0],c:w[1],o:shuf([w[1],w[2],w[3]]),d:[]})}
- // Roster at start = students online now. Players who log in later (explore phase) are added automatically in tick().
- // Players are never removed if they disconnect.
  const AVS=shuf(AVS0),H0=Math.random()*360,HS=shuf(names.map((_,i)=>i));
  names.forEach((u,i)=>P[u]={x:200+Math.random()*(W-400),y:200+Math.random()*(H-400),s:100,o:0,cd:0,b:null,a:AVS[i%AVS.length],h:Math.round((H0+HS[i]*360/names.length)%360)});
- G={ph:'explore',e:Date.now()+(+$('em').value||2)*60000,slay:(+$('sm').value||3)*60000,W,H,boxes,P,log:[],duels:[],sb:-1,sp:''};
+ G={ph:'explore',e:Date.now()+(+$('em').value\vert{}\vert{}2)*60000,slay:(+$('sm').value||3)*60000,W,H,boxes,P,log:[],duels:[],sb:-1,sp:''};
  names.forEach(hook);
  ev('🚀 Game started with '+names.length+' players!')}
 
 function ev(t){G.log.unshift(t);$('lg').innerHTML=G.log.slice(0,15).map(l=>`<div>${esc(l)}</div>`).join('')}
 function ensureBoxes(){
- // Keep a healthy supply of unopened boxes during explore and slaughter, so players are never left with nothing to open.
  if(!G||G.ph==='ended'||(G.ph==='slaughter'&&!$('sbx').checked)||G.boxes.length>=400)return;
  const onlineCount=Math.max(1,online().size);
  const remaining=G.boxes.filter(b=>b.d.length<onlineCount).length;
@@ -181,19 +185,16 @@ function tick(){
  online().forEach(hook);
  if(G.ph==='explore'&&now>=G.e){G.ph='slaughter';G.e=now+G.slay;ev('⚔️ SLAUGHTER PHASE BEGINS!')}
  if(G.ph==='slaughter'){const all=Object.values(G.P),act=all.filter(p=>!p.o).length;if(now>=G.e||(all.length>1&&act<=1))fin()}
- // late joiners: anyone who logs in during the explore phase is added to the game
  if(G.ph==='explore')online().forEach(u=>{if(!G.P[u]){G.P[u]=newPlayer(G);ev('➕ '+u+' joined the game')}});
  ensureBoxes();
- if(tn%2)return live();                          // st goes out every 400 ms
- if(G.ph==='ended'&&tn%10)return live();         // after the end, only once per second
+ if(tn%2)return live();
+ if(G.ph==='ended'&&tn%10)return live();
  const m={sn:+$('sn').checked,ss:+$('ss').checked,bx:+$('sbx').checked,p:G.ph,e:G.e,n:now,W:G.W,H:G.H,
   pl:Object.fromEntries(Object.entries(G.P).map(([k,p])=>[k,[p.x|0,p.y|0,p.s,p.o,p.a,p.h]]))};
- // boxes + duel log are heavy: send them only when changed, every ~2.4 s as a resync, and when the game ends
  if(G.sb!==G.boxes.length||G.sp!==G.ph||(tn/2)%6===0||G.ph==='ended'){m.b=G.boxes.map(b=>[b.x|0,b.y|0]);m.dl=G.duels;G.sb=G.boxes.length;G.sp=G.ph}
  tx('st',m);live()}
 
-function live(){$('lv').style.display=G?'block':'none';$('go').disabled=!!G;if(!G)return;const on=online();
- $('lph').textContent=({explore:'🔍 Explore phase',slaughter:'⚔️ Slaughter phase',ended:'🏁 Game over'})[G.ph]+(G.ph==='ended'?'':' — '+fmt(Math.max(0,G.e-Date.now())));
+function live(){$('lv').style.display=G?'block':'none';$('go').disabled=!!G;if(!G)return;const on=online();$('lph').textContent=({explore:'🔍 Explore phase',slaughter:'⚔️ Slaughter phase',ended:'🏁 Game over'})[G.ph]+(G.ph==='ended'?'':' — '+fmt(Math.max(0,G.e-Date.now())));
  $('sb').innerHTML=Object.entries(G.P).sort((a,b)=>b[1].s-a[1].s).map(([n,p],i)=>`<tr><td>${i+1}</td><td><span class="dot ${on.has(n)?'on':''}"></span>${esc(n)}</td><td>${p.s}</td><td>${p.o?'💀 out':'⚔️ active'}${on.has(n)?'':' · offline'}</td></tr>`).join('')}
 
 if(sessionStorage.va_host){$('ov').remove();boot()}
