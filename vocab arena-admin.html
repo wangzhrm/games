@@ -103,11 +103,8 @@ const online=()=>new Set(Object.keys(seen).filter(k=>seen[k].at&&Date.now()-seen
 const pwOf=r=>{const k=Object.keys(r).find(k=>/pass|pwd|pin/i.test(k));return k?r[k]:null};
 async function loadStudents(){
  const a=await tcbSelect('student_accounts?select=username,password&order=username.asc');
- const b=await tcbSelect('trading_students?select=*&order=username.asc');
  if(a.error)alert('Load student_accounts failed: '+a.error.message);
- if(b.error)alert('Load trading_students failed: '+b.error.message);
- students=(a.data||[]).map(s=>({username:s.username,password:s.password,src:''}))
-  .concat((b.data||[]).map(s=>({username:s.username,password:pwOf(s)??'(no password column found)',src:'Trading Sim'})));
+ students=(a.data||[]).map(s=>({username:s.username,password:s.password,src:''}));
  rs()}
 function rs(){const on=online();
  $('st').innerHTML=students.map(s=>`<tr><td><span class="dot ${on.has(s.username)?'on':''}"></span>${esc(s.username)}${s.src?` <small style="background:#e0a800;color:#332;padding:1px 6px;border-radius:5px">${s.src}</small>`:''}</td><td>${esc(s.password)}</td></tr>`).join('');
