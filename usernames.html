@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vocab Arena · Account Manager</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--card:#1e1e40;--acc:#ffd54a;--ok:#3ddc97;--bad:#ff4d6d}
+*{box-sizing:border-box}
+body{margin:0;padding:18px;font-family:"Trebuchet MS","Microsoft YaHei",system-ui,sans-serif;background:radial-gradient(circle at 20% 0,#2f2270,#12122a 60%) fixed;color:#f3f3ff}
+h1{margin:0 0 4px;font-size:28px}
+.c{background:var(--card);border-radius:16px;padding:16px;border:1px solid #3a3a70;margin-top:16px}
+.c h2{margin:0 0 10px;font-size:17px;color:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:6px;border-bottom:1px solid #2f2f5c;text-align:left}
+input[type=text],textarea{background:#12122a;border:1px solid #444a8a;color:#fff;border-radius:8px;padding:8px;width:100%;font-family:inherit;font-size:15px}
+textarea{min-height:110px}
+button{background:#3a3a80;color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:bold}
+button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:not-allowed}
+.pri{background:linear-gradient(90deg,#ff4d8d,#ff9f43)}.del{background:#8a2a3f}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.row>input[type=text]{flex:1;min-width:160px}
+.sc{max-height:520px;overflow:auto}
+small{color:#b9b9e0}
+#ov{position:fixed;inset:0;background:#12122a;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;z-index:9}
+#ov input{width:240px}
+#msg{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#000d;padding:10px 20px;border-radius:12px;display:none;z-index:20;max-width:90vw}
+</style></head><body>
+<div id="ov"><h1>👥 Account Manager</h1><input id="lu" type="text" placeholder="Admin username"><input id="lp" type="password" placeholder="Password" onkeydown="if(event.key=='Enter')adminLogin()"><button onclick="adminLogin()">Log in</button></div>
+<div id="msg"></div>
+
+<h1>👥 Vocab Arena · Account Manager</h1>
+<small>Edits the <b>student_accounts</b> table in your Tencent CloudBase database. Students listed under "Trading Sim" (table trading_students) are not managed here.</small>
+
+<div class="c"><h2>Add one student</h2>
+ <div class="row"><input type="text" id="nu" placeholder="Username (Chinese characters OK)"><input type="text" id="np" placeholder="Password" onkeydown="if(event.key=='Enter')addOne()"><button class="pri" onclick="addOne()">+ Add</button></div>
+</div>
+
+<div class="c"><h2>Add many students</h2>
+ <small>One student per line: <b>username, password</b> (comma, Chinese comma or tab between them — you can paste two columns straight from Excel). Existing usernames are skipped.</small>
+ <textarea id="bulk" placeholder="张三, 1234&#10;李四, abcd&#10;Tom, 5678"></textarea>
+ <div class="row"><button class="pri" onclick="addBulk()">Add these students</button>
+  <span>or import Excel (column A = username, B = password):</span><input type="file" id="xl" accept=".xlsx,.xls,.csv" style="width:auto"></div>
+</div>
+
+<div class="c"><h2>Students (<span id="cnt">0</span>)</h2>
+ <div class="row"><input type="text" id="q" placeholder="Search username…" oninput="q=this.value.trim();render()">
+  <button onclick="load()">↻ Reload</button><button onclick="exportXl()">⬇ Export Excel</button><button class="del" onclick="delSel()">🗑 Delete selected</button></div>
+ <div class="sc"><table><thead><tr><th style="width:36px"><input type="checkbox" id="all" onchange="selAll(this.checked)"></th><th>Username</th><th>Password</th><th style="width:190px"></th></tr></thead><tbody id="tb"></tbody></table></div>
+</div>
+
+<script>
+const TCB_ENV='civil-prawn-d0gflguvzee35fad8';
+const TCB_REST_URL=`https://${TCB_ENV}.api.tcloudbasegateway.com/v1/rdb/rest`;
+const TCB_PUBLISHABLE_KEY='eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw';
+const T='student_accounts',enc=encodeURIComponent,$=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let rows=[],view=[],editing=null,q='',sel=new Set();
+
+async function req(path,method,body,prefer){
+ try{
+  const h={apikey:TCB_PUBLISHABLE_KEY,Authorization:'Bearer '+TCB_PUBLISHABLE_KEY};
+  if(body!==undefined)h['Content-Type']='application/json';
+  if(prefer)h.Prefer=prefer;
+  const r=await fetch(`${TCB_REST_URL}/${path}`,{method:method||'GET',headers:h,body:body!==undefined?JSON.stringify(body):undefined});
+  const t=await r.text();
+  if(!r.ok)return{ok:false,status:r.status,msg:t};
+  return{ok:true,data:t?JSON.parse(t):[]};
+ }catch(e){return{ok:false,msg:String(e)}}}
+function fail(what,r){
+ const hint=(r.status===401||r.status===403||/permission|denied|policy/i.test(r.msg||''))?'\n\nThis looks like a permission problem: run the GRANT statements for student_accounts in the CloudBase SQL editor (see the instructions).':'';
+ alert(what+' failed ('+(r.status||'network')+'): '+(r.msg||'').slice(0,300)+hint)}
+function say(t){const m=$('msg');m.textContent=t;m.style.display='block';clearTimeout(m.h);m.h=setTimeout(()=>m.style.display='none',3000)}
+
+function adminLogin(){if($('lu').value==='wangzhrm'&&$('lp').value==='wang123'){sessionStorage.va_acc=1;$('ov').remove();load()}else alert('Wrong credentials')}
+
+async function load(){
+ const r=await req(`${T}?select=username,password&order=username.asc`);
+ if(!r.ok)return fail('Loading students',r);
+ rows=r.data;sel.clear();editing=null;render()}
+
+function render(){
+ view=rows.filter(r=>!q||String(r.username).toLowerCase().includes(q.toLowerCase()));
+ $('cnt').textContent=rows.length;
+ $('tb').innerHTML=view.map((r,i)=>editing===r.username?
+  `<tr><td></td><td><input type="text" id="eu" value="${esc(r.username)}"></td><td><input type="text" id="ep" value="${esc(r.password)}"></td><td><button class="pri" onclick="save(${i})">Save</button> <button onclick="editing=null;render()">Cancel</button></td></tr>`
+  :`<tr><td><input type="checkbox" ${sel.has(r.username)?'checked':''} onchange="tog(${i},this.checked)"></td><td>${esc(r.username)}</td><td>${esc(r.password)}</td><td><button onclick="editing=view[${i}].username;render()">Edit</button> <button class="del" onclick="del(${i})">Delete</button></td></tr>`).join('')
+  ||'<tr><td colspan="4"><small>No students.</small></td></tr>'}
+const tog=(i,on)=>on?sel.add(view[i].username):sel.delete(view[i].username);
+function selAll(on){view.forEach(r=>on?sel.add(r.username):sel.delete(r.username));render()}
+
+async function addOne(){
+ const u=$('nu').value.trim(),p=$('np').value.trim();
+ if(!u||!p)return alert('Please enter both a username and a password.');
+ if(rows.some(r=>r.username===u))return alert('Username "'+u+'" already exists.');
+ const r=await req(T,'POST',{username:u,password:p},'return=minimal');
+ if(!r.ok)return fail('Adding student',r);
+ $('nu').value=$('np').value='';say('Added '+u);load()}
+
+function parseLines(text){
+ const out=[];
+ text.split(/\r?\n/).forEach(l=>{l=l.trim();if(!l)return;const m=l.match(/^([^\t,，]+)[\t,，](.*)$/);
+  if(m&&m[1].trim()&&m[2].trim())out.push({username:m[1].trim(),password:m[2].trim()})});
+ return out}
+async function addMany(list){
+ const have=new Set(rows.map(r=>r.username)),seen=new Set(),add=[];let skipped=0;
+ list.forEach(s=>{if(have.has(s.username)||seen.has(s.username)){skipped++;return}seen.add(s.username);add.push(s)});
+ if(!add.length)return alert('Nothing to add'+(skipped?' ('+skipped+' duplicate usernames skipped).':'. Check the format: username, password'));
+ const r=await req(T,'POST',add,'return=minimal');
+ if(!r.ok)return fail('Adding students',r);
+ alert('Added '+add.length+' students'+(skipped?', skipped '+skipped+' existing/duplicate usernames.':'.'));load()}
+async function addBulk(){await addMany(parseLines($('bulk').value));$('bulk').value=''}
+
+$('xl').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+ rd.onload=ev=>{const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+  const aoa=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
+  const list=aoa.map(r=>({username:r[0]==null?'':String(r[0]).trim(),password:r[1]==null?'':String(r[1]).trim()})).filter(s=>s.username&&s.password);
+  e.target.value='';addMany(list)};
+ rd.readAsArrayBuffer(f)};
+
+async function save(i){
+ const old=view[i].username,u=$('eu').value.trim(),p=$('ep').value.trim();
+ if(!u||!p)return alert('Username and password cannot be empty.');
+ if(u!==old&&rows.some(r=>r.username===u))return alert('Username "'+u+'" already exists.');
+ const r=await req(`${T}?username=eq.${enc(old)}`,'PATCH',{username:u,password:p},'return=minimal');
+ if(!r.ok)return fail('Saving',r);
+ say('Saved '+u);load()}
+
+async function del(i){
+ const u=view[i].username;if(!confirm('Delete student "'+u+'"?'))return;
+ const r=await req(`${T}?username=eq.${enc(u)}`,'DELETE');
+ if(!r.ok)return fail('Deleting',r);
+ say('Deleted '+u);load()}
+async function delSel(){
+ if(!sel.size)return alert('Tick the students you want to delete first.');
+ if(!confirm('Delete '+sel.size+' selected students? This cannot be undone.'))return;
+ let n=0;for(const u of sel){const r=await req(`${T}?username=eq.${enc(u)}`,'DELETE');if(!r.ok){fail('Deleting '+u,r);break}n++}
+ say('Deleted '+n+' students');load()}
+
+function exportXl(){
+ const ws=XLSX.utils.aoa_to_sheet([['username','password'],...rows.map(r=>[r.username,r.password])]);
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'students');XLSX.writeFile(wb,'students.xlsx')}
+
+if(sessionStorage.va_acc){$('ov').remove();load()}
+</script></body></html>
