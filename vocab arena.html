@@ -94,11 +94,7 @@ async function login(){try{ac=ac||new AudioContext()}catch(e){}
  const u=$('u').value.trim(),p=$('p').value;
  const eu=enc(u),ep=enc(p);
  const accRows=await tcbSelect(`student_accounts?select=username&username=eq.${eu}&password=eq.${ep}&limit=1`);
- let ok=accRows.length>0;
- if(!ok){
-  const trRows=await tcbSelect(`trading_students?select=*&username=eq.${eu}`);
-  ok=trRows.some(r=>{const k=Object.keys(r).find(k=>/pass|pwd|pin/i.test(k));return k&&String(r[k])===p});
- }
+ const ok=accRows.length>0;
  if(!ok)return $('er').style.display='block';
  sessionStorage.va_u=u;enter(u)}
 if(sessionStorage.va_u)setTimeout(()=>enter(sessionStorage.va_u),0);
