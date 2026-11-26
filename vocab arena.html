@@ -341,31 +341,49 @@ function drawSwordCircle(px,py,radius,angle,hue,isSlaughter){
  x.stroke();
  x.setLineDash([]);
 
- const tipX=px+Math.cos(angle)*radius;
- const tipY=py+Math.sin(angle)*radius;
- const perpX=-Math.sin(angle);
- const perpY=Math.cos(angle);
+ const cosA=Math.cos(angle),sinA=Math.sin(angle);
+ const perpX=-sinA,perpY=cosA;
 
- /* Rotating sword blade */
- x.strokeStyle=isSlaughter?'#ffd54a':'#fff3b0';
- x.lineWidth=5;
+ /* Grip & pommel near the avatar */
+ const pommelX=px+cosA*18;
+ const pommelY=py+sinA*18;
+ const gripEndX=px+cosA*32;
+ const gripEndY=py+sinA*32;
+
+ x.strokeStyle='#b5651d';
+ x.lineWidth=6;
  x.lineCap='round';
  x.beginPath();
- x.moveTo(px,py);
+ x.moveTo(pommelX,pommelY);
+ x.lineTo(gripEndX,gripEndY);
+ x.stroke();
+
+ /* Pommel cap */
+ x.fillStyle='#ffd54a';
+ x.beginPath();
+ x.arc(pommelX,pommelY,4.5,0,Math.PI*2);
+ x.fill();
+
+ /* Crossguard */
+ x.strokeStyle='#ffffff';
+ x.lineWidth=4.5;
+ x.beginPath();
+ x.moveTo(gripEndX-perpX*10,gripEndY-perpY*10);
+ x.lineTo(gripEndX+perpX*10,gripEndY+perpY*10);
+ x.stroke();
+
+ /* Blade extending outward toward the circle edge */
+ const tipX=px+cosA*radius;
+ const tipY=py+sinA*radius;
+
+ x.strokeStyle=isSlaughter?'#ffd54a':'#fff3b0';
+ x.lineWidth=5;
+ x.beginPath();
+ x.moveTo(gripEndX,gripEndY);
  x.lineTo(tipX,tipY);
  x.stroke();
 
- /* Crossguard */
- const guardX=px+Math.cos(angle)*(radius-14);
- const guardY=py+Math.sin(angle)*(radius-14);
- x.strokeStyle='#ffffff';
- x.lineWidth=4;
- x.beginPath();
- x.moveTo(guardX-perpX*9,guardY-perpY*9);
- x.lineTo(guardX+perpX*9,guardY+perpY*9);
- x.stroke();
-
- /* Sword tip */
+ /* Sword tip at the outer circle */
  x.fillStyle=isSlaughter?'#ff4d6d':'#ff9f43';
  x.beginPath();
  x.arc(tipX,tipY,6.5,0,Math.PI*2);
