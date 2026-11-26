@@ -81,7 +81,10 @@ async function api(path,method,body,prefer){
 }
 async function tcbSelect(path){const r=await api(path);return Array.isArray(r)?r:[]}
 
-/* ===== Retrieve uploaded vocabulary list from va_vocab ===== */
+/* ===== Retrieve 4-column vocab list from va_vocab =====
+   Col 1 (question): English vocab
+   Col 2 (correct_option): Correct Chinese meaning
+   Col 3 & 4 (wrong_option_1, wrong_option_2): Confusing incorrect Chinese meanings */
 let vocabBank=[],vocabFetched=false;
 async function fetchVocabBank(force=false){
   if(vocabFetched&&!force&&vocabBank.length)return vocabBank;
@@ -106,10 +109,10 @@ const cl=(v,a,b)=>Math.min(b,Math.max(a,v)),esc=s=>String(s).replace(/[&<>"]/g,c
 const fmt=r=>{const s=Math.ceil(r/1000);return (s/60|0)+':'+String(s%60).padStart(2,'0')};
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
-/* Sword length & challenge radius grow as player score increases */
-const swordRadius=s=>cl(75+Math.max(0,(Number(s)||100)-100)*1.15,75,235);
+/* Sword length & circle radius grow as player score increases */
+const swordRadius=s=>cl(80+Math.max(0,(Number(s)||100)-100)*1.3,80,250);
 
-let me,S,off=0,pl={},M={x:0,y:0},inited=0,keys={},ptr=null,qb=null,curQ=null,picked,done=new Set(),ph0='',shake=0,parts=[],fl=[],lastSec=-1,ac,near={b:-1,p:null},sv=-1,last=0,known={},outMsg="💀 You're out of duels — keep opening boxes!",autoCd={};
+let me,S,off=0,pl={},M={x:0,y:0},inited=0,keys={},ptr=null,qb=null,curQ=null,qScored=false,picked,done=new Set(),ph0='',shake=0,parts=[],fl=[],lastSec=-1,ac,near={b:-1,p:null},sv=-1,last=0,known={},outMsg="💀 You're out of duels — keep opening boxes!",autoCd={},boxAutoCd={},openingBox=false;
 let sd=12345;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
 const DEC=[];for(let i=0;i<140;i++)DEC.push({x:rnd()*2400,y:rnd()*1600,e:['🌳','🌲','🌷','🍄','🪨','🌻','🌿'][i%7],s:24+rnd()*24|0});
 
@@ -161,7 +164,7 @@ async function pollIn(){
   inBusy=0;return}
  const r=await api(`va_msgs?select=id,ev,payload&to_user=eq.${enc(me)}&id=gt.${inLast}&order=id.asc`);inBusy=0;
  if(r)for(const m of r){inLast=Math.max(inLast,m.id);let p;try{p=JSON.parse(m.payload)}catch(e){continue}
-  if(m.ev==='q'&&!curQ)showQ(p);else if(m.ev==='res'&&!curQ)onRes(p)}}
+  if(m.ev==='q'&&!curQ)showQ(p)}}
 
 function enter(u){if(entered)return;entered=1;me=u;$('lg').style.display='none';$('lb0').style.display='flex';
  fetchVocabBank(true);
@@ -178,7 +181,7 @@ function onSt(m){
   if(bxD){m.b=bxD.b;m.dl=bxD.dl||[]}
   if(!m.b)return}
  S=m;off=m.n-Date.now();
- if(m.p==='lobby'){if(ph0!=='lobby'){pl={};inited=0;done.clear();known={};autoCd={};bv=null;bxD=null;duelSeen=null;outMsg="💀 You're out of duels — keep opening boxes!";ph0='lobby';$('end').style.display='none';document.body.classList.remove('slay');$('cd').style.display='none';fetchVocabBank(true)}
+ if(m.p==='lobby'){if(ph0!=='lobby'){pl={};inited=0;done.clear();known={};autoCd={};boxAutoCd={};bv=null;bxD=null;duelSeen=null;outMsg="💀 You're out of duels — keep opening boxes!";ph0='lobby';$('end').style.display='none';document.body.classList.remove('slay');$('cd').style.display='none';fetchVocabBank(true)}
   $('lb0').style.display='flex';$('lm').textContent='Waiting for the teacher to start…';
   $('ro').textContent=(m.c||0)+' players joined';return}
  for(const k in m.pl){const[a,b,s,o,e,h]=m.pl[k];const p=pl[k]||(pl[k]={dx:a,dy:b});p.x=a;p.y=b;p.s=s;p.o=o;p.a=e;p.h=h}
@@ -203,18 +206,35 @@ function showEnd(){qb=null;curQ=null;$('qm').style.display='none';$('cd').style.
  $('end').style.display='flex';[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.25),i*150))}
 
 function showQ(m){
-  qb=m.b;curQ=m;
+  qb=m.b;curQ=m;qScored=false;picked=null;
   $('qw').textContent=m.w;
   const o=$('qo');o.innerHTML='';
   m.o.forEach((t,i)=>{
     const b=document.createElement('button');b.textContent=t;
     b.onclick=()=>{
+      if(qScored)return;
+      qScored=true;
       picked=b;
       [...o.children].forEach(z=>z.disabled=1);
-      const ok=(t===m.c);
-      onRes({b:qb,ok,c:m.c});
-      /* Notify host console of score update & box completion */
-      txp('ans',{u:me,b:qb,i,ok,c:m.c});
+      const ok=(String(t).trim()===String(m.c).trim());
+      done.add(qb);
+      if(pl[me]){
+        const nextScore=Math.max(0,(Number(pl[me].s)||0)+(ok?10:-10));
+        pl[me].s=nextScore;
+        sv=nextScore;
+        const scEl=$('sc');
+        scEl.textContent=nextScore;
+        scEl.classList.remove('pop');void scEl.offsetWidth;scEl.classList.add('pop');
+      }
+      [...o.children].forEach(btn=>{
+        if(btn.textContent===m.c)btn.classList.add('ok');
+        else if(btn===picked&&!ok)btn.classList.add('no');
+      });
+      const c=ok?'#3ddc97':'#ff4d6d';
+      float(ok?'+10':'-10',M.x,M.y-40,c);burst(M.x,M.y,c);
+      if(ok){beep(880,.2);setTimeout(()=>beep(1175,.25),120)}else{beep(160,.35,'sawtooth',.2);shake=12}
+      txp('ans',{u:me,b:qb,i,ok,c:m.c,s:pl[me]?pl[me].s:100});
+      setTimeout(closeQ,1000);
     };
     o.appendChild(b);
   });
@@ -222,18 +242,11 @@ function showQ(m){
   beep(520,.1);
 }
 
-const closeQ=()=>{$('qm').style.display='none';qb=null;curQ=null};
-
-function onRes(m){
- waitUntil=0;
- if(m.er){if(m.b!=null)done.add(m.b);toast(m.er);closeQ();return}
- [...$('qo').children].forEach(b=>{b.disabled=1;if(b.textContent===m.c)b.classList.add('ok');else if(b===picked)b.classList.add('no')});
- done.add(m.b);
- if(pl[me])pl[me].s=Math.max(0,(pl[me].s||0)+(m.ok?10:-10));
- const c=m.ok?'#3ddc97':'#ff4d6d';
- float(m.ok?'+10':'-10',M.x,M.y-40,c);burst(M.x,M.y,c);
- if(m.ok){beep(880,.2);setTimeout(()=>beep(1175,.25),120)}else{beep(160,.35,'sawtooth',.2);shake=12}
- setTimeout(closeQ,1100)}
+const closeQ=()=>{
+  boxAutoCd[qb]=Date.now()+2000;
+  $('qm').style.display='none';
+  qb=null;curQ=null;qScored=false;openingBox=false;
+};
 
 function onDuel(m){const a=pl[m.a],t=pl[m.t];if(!a||!t)return;
  burst((a.dx+t.dx)/2,(a.dy+t.dy)/2,'#ffd54a');beep(300,.15,'square');setTimeout(()=>beep(220,.2,'square'),120);
@@ -242,22 +255,27 @@ function onDuel(m){const a=pl[m.a],t=pl[m.t];if(!a||!t)return;
   if(m.w===me)toast('🏆 You defeated '+opp+'! +10');
   else{outMsg='💀 Defeated by '+opp+' — you can still watch the arena.';toast('💀 You were defeated by '+opp+'! −10')}}}
 
-/* Open box directly using vocabulary fetched from va_vocab in CloudBase */
-async function openBox(){
- if(near.b<0||qb!==null)return;
- const bi=near.b;
- if(done.has(bi))return;
- if(!vocabBank.length){
-  toast('Loading vocabulary from database…');
-  await fetchVocabBank(true);
+/* Open treasure box using 4-column vocabulary fetched from va_vocab */
+async function openBox(targetBoxIdx){
+ const bi=(typeof targetBoxIdx==='number')?targetBoxIdx:near.b;
+ if(bi<0||qb!==null||openingBox||done.has(bi))return;
+ const canOpen=(S&&(S.p==='explore'||(S.p==='slaughter'&&S.bx!==0)));
+ if(!canOpen)return;
+ openingBox=true;
+ try{
+  if(!vocabBank.length){
+   await fetchVocabBank(true);
+  }
+  if(!vocabBank.length){
+   toast('No vocabulary uploaded in database yet.');
+   return;
+  }
+  const item=vocabBank[(bi+Math.floor(Math.random()*vocabBank.length))%vocabBank.length];
+  const opts=shuf([item.c,item.wrong[0],item.wrong[1]]);
+  showQ({b:bi,w:item.w,c:item.c,o:opts});
+ }finally{
+  if(qb===null)openingBox=false;
  }
- if(!vocabBank.length){
-  toast('No vocabulary uploaded in database yet.');
-  return;
- }
- const item=vocabBank[(bi+Math.floor(Math.random()*vocabBank.length))%vocabBank.length];
- const opts=shuf([item.c,item.wrong[0],item.wrong[1]]);
- showQ({b:bi,w:item.w,c:item.c,o:opts});
 }
 
 const chal=(targetName)=>{const t=targetName||near.p;if(t&&qb===null)txp('chal',{u:me,t})};
@@ -279,19 +297,30 @@ function step(dt,t){
  for(const k in pl)if(k!==me){const p=pl[k];p.dx+=(p.x-p.dx)*Math.min(1,dt*5);p.dy+=(p.y-p.dy)*Math.min(1,dt*5)}
  near={b:-1,p:null};
  if(on&&qb===null){
-  let bd=90;
-  if(S.p==='explore'||S.bx!==0)S.b.forEach((b,i)=>{const d=Math.hypot(b[0]-M.x,b[1]-M.y);if(!done.has(i)&&d<bd){bd=d;near.b=i}});
+  const myR=swordRadius(mp.s);
+  const now=Date.now();
+  let bd=Math.max(90,myR+24);
+  if(S.p==='explore'||S.bx!==0){
+   S.b.forEach((b,i)=>{
+    if(done.has(i))return;
+    const d=Math.hypot(b[0]-M.x,b[1]-M.y);
+    if(d<=myR+24&&(!boxAutoCd[i]||now>boxAutoCd[i])){
+     boxAutoCd[i]=now+2000;
+     near.b=i;
+     openBox(i);
+    }else if(d<bd){
+     bd=d;near.b=i;
+    }
+   });
+  }
   if(S.p==='slaughter'&&!mp.o){
-   const myR=swordRadius(mp.s);
    let bestD=Infinity;
-   const now=Date.now();
    for(const k in pl){
     const o=pl[k];if(k===me||o.o)continue;
     const d=Math.hypot(o.dx-M.x,o.dy-M.y);
-    /* Highlight target within sword reach */
-    if(d<=myR+22&&d<bestD){bestD=d;near.p=k}
+    if(d<=myR+24&&d<bestD){bestD=d;near.p=k}
     /* Automatically challenge any active player entering your sword circle */
-    if(d<=myR+20&&(!autoCd[k]||now-autoCd[k]>1500)){
+    if(d<=myR+24&&(!autoCd[k]||now-autoCd[k]>1500)){
      autoCd[k]=now;
      chal(k);
     }
@@ -301,10 +330,10 @@ function step(dt,t){
  $('bo').style.display=near.b>=0?'block':'none';$('bc').style.display=near.p?'block':'none';
  if(near.p)$('bc').textContent='⚔️ Challenge (F)'}
 
-function drawSwordCircle(px,py,radius,angle,hue){
+function drawSwordCircle(px,py,radius,angle,hue,isSlaughter){
  x.save();
- /* Outer sword sweep boundary circle */
- x.strokeStyle=`hsla(${hue},95%,65%,0.42)`;
+ /* Circle boundary formed by the rotating sword */
+ x.strokeStyle=isSlaughter?`hsla(${hue},95%,65%,0.55)`:`hsla(48,100%,65%,0.42)`;
  x.setLineDash([8,8]);
  x.lineWidth=2.5;
  x.beginPath();
@@ -318,7 +347,7 @@ function drawSwordCircle(px,py,radius,angle,hue){
  const perpY=Math.cos(angle);
 
  /* Rotating sword blade */
- x.strokeStyle='#ffd54a';
+ x.strokeStyle=isSlaughter?'#ffd54a':'#fff3b0';
  x.lineWidth=5;
  x.lineCap='round';
  x.beginPath();
@@ -326,7 +355,7 @@ function drawSwordCircle(px,py,radius,angle,hue){
  x.lineTo(tipX,tipY);
  x.stroke();
 
- /* Crossguard near the blade tip */
+ /* Crossguard */
  const guardX=px+Math.cos(angle)*(radius-14);
  const guardY=py+Math.sin(angle)*(radius-14);
  x.strokeStyle='#ffffff';
@@ -336,10 +365,10 @@ function drawSwordCircle(px,py,radius,angle,hue){
  x.lineTo(guardX+perpX*9,guardY+perpY*9);
  x.stroke();
 
- /* Glowing tip */
- x.fillStyle='#ff4d6d';
+ /* Sword tip */
+ x.fillStyle=isSlaughter?'#ff4d6d':'#ff9f43';
  x.beginPath();
- x.arc(tipX,tipY,6,0,Math.PI*2);
+ x.arc(tipX,tipY,6.5,0,Math.PI*2);
  x.fill();
  x.restore();
 }
@@ -359,8 +388,8 @@ function draw(t){
  S.b.forEach((b,i)=>{const dn=done.has(i)||(sl&&S.bx===0);x.save();x.globalAlpha=dn?.4:1;x.shadowColor='#ffd54a';x.shadowBlur=dn?0:22+8*Math.sin(t/200+i);x.font='46px serif';x.fillText(dn?'📭':'🎁',b[0],b[1]+Math.sin(t/300+i)*4);x.restore()});
  Object.entries(pl).sort((a,b)=>a[1].dy-b[1].dy).forEach(([k,p],idx)=>{
   const px=p.dx,py=p.dy;
-  if(sl&&!p.o){
-   drawSwordCircle(px,py,swordRadius(p.s),t/380+idx*1.1,p.h||0);
+  if(!p.o&&(S.p==='explore'||S.p==='slaughter')){
+   drawSwordCircle(px,py,swordRadius(p.s),t/360+idx*1.1,p.h||0,sl);
   }
   x.fillStyle='#0005';x.beginPath();x.ellipse(px,py+24,20,7,0,0,7);x.fill();
   x.globalAlpha=p.o?.45:1;x.fillStyle=col(k);x.beginPath();x.arc(px,py,24,0,7);x.fill();
@@ -379,7 +408,7 @@ function hud(t){
  if(!S||S.p==='lobby'||!pl[me])return;
  const r=Math.max(0,S.e-(Date.now()+off)),sec=Math.ceil(r/1000),m=pl[me];
  $('ph').textContent=S.p==='explore'?'🔍 EXPLORE '+fmt(r):S.p==='slaughter'?'⚔️ SLAUGHTER '+fmt(r):'🏁 GAME OVER';
- if(sv!==m.s){sv=m.s;const e=$('sc');e.textContent=m.s;e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop')}
+ if(qb===null&&sv!==m.s){sv=m.s;const e=$('sc');e.textContent=m.s;e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop')}
  const cd=S.p==='explore'&&sec<=10&&r>0;$('cd').style.display=cd?'block':'none';
  if(cd){$('cdn').textContent=sec;if(sec!==lastSec){lastSec=sec;beep(500+(10-sec)*70,.15,'square',.1)}}
  if(m.o){$('out').textContent=outMsg;$('out').style.display=S.p!=='ended'?'block':'none'}else $('out').style.display='none'}
