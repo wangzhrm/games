@@ -41,8 +41,8 @@ button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:not-allow
  <div class="c"><h2>Students (<span id="onc">0</span> online)</h2>
   <div class="sc"><table><tr><th>Username</th><th>Password</th></tr><tbody id="st"></tbody></table></div></div>
  <div class="c" style="grid-column:span 2"><h2>Questions (<span id="vc">0</span> complete) <span id="dbStatus">· Cloud sync ready</span></h2>
-  <div class="row"><input type="file" id="xl" accept=".xlsx,.xls" style="width:auto"><small>Column A = question, B = <b>correct</b> option, C &amp; D = wrong options. The correct option is shuffled on the player page.</small></div>
-  <div class="sc"><table><tr><th>Question</th><th>✔ Correct (2nd)</th><th>Option 3</th><th>Option 4</th><th></th></tr><tbody id="vb"></tbody></table></div>
+  <div class="row"><input type="file" id="xl" accept=".xlsx,.xls" style="width:auto"><small>Col 1 = English vocab, Col 2 = <b>correct</b> Chinese meaning, Col 3 &amp; 4 = confusing incorrect Chinese meanings.</small></div>
+  <div class="sc"><table><tr><th>English Vocab (1)</th><th>✔ Correct Meaning (2)</th><th>Wrong Meaning (3)</th><th>Wrong Meaning (4)</th><th></th></tr><tbody id="vb"></tbody></table></div>
   <div class="row">
    <button type="button" onclick="vocab.push(['','','','']);rv();sv()">+ Add row</button>
    <button type="button" onclick="syncVocabToDB(true)">☁️ Save / Upload to Database</button>
@@ -91,7 +91,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const cl=(v,a,b)=>Math.min(b,Math.max(a,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const fmt=r=>{const s=Math.ceil(r/1000);return (s/60|0)+':'+String(s%60).padStart(2,'0')};
-const swordRadius=s=>cl(75+Math.max(0,(Number(s)||100)-100)*1.15,75,235);
+const swordRadius=s=>cl(80+Math.max(0,(Number(s)||100)-100)*1.3,80,250);
 
 let vocab=JSON.parse(localStorage.va_vocab||'[["","","",""]]').map(r=>[0,1,2,3].map(j=>r[j]||'')),students=[],G=null,tn=0,syncTimer=null;
 if(!vocab.length)vocab=[['','','','']];
@@ -208,18 +208,23 @@ function onMsg(kind,m){const u=m.u;
   if(!p||!b)return rep(u,'res',{u,er:'You are not in this round yet — please wait a moment'});
   if(m.x!=null){p.x=cl(m.x,0,G.W);p.y=cl(m.y,0,G.H)}
   if(b.d.includes(u))return rep(u,'res',{u,b:m.b,er:'You already answered this box!'});
-  if(dist(p,b)>200)return rep(u,'res',{u,er:'Too far from the box'});
+  const reach=Math.max(200,swordRadius(p.s)+36);
+  if(dist(p,b)>reach)return rep(u,'res',{u,er:'Too far from the box'});
   p.b=m.b;rep(u,'q',{u,b:m.b,w:b.w,o:b.o})}
  else if(kind==='ans'){
   const p=G&&G.P[u],b=p&&G.boxes[m.b];if(!b)return;
-  if(b.d.includes(u))return rep(u,'res',{u,b:m.b,er:'Already answered'});
-  if(!act())return rep(u,'res',{u,er:'Time is up'});
-  if(p.b!==m.b)return rep(u,'res',{u,er:'Question expired — open the box again'});
-  p.b=null;b.d.push(u);const ok=b.o[m.i]===b.c;p.s=Math.max(0,p.s+(ok?10:-10));
+  const key=u+'|'+m.b;
+  if(b.d.includes(u)||G.answered.has(key))return;
+  if(!act())return;
+  G.answered.add(key);
+  p.b=null;
+  if(!b.d.includes(u))b.d.push(u);
+  const ok=typeof m.ok==='boolean'?m.ok:(b.o&&b.o[m.i]===b.c);
+  p.s=Math.max(0,(Number(p.s)||0)+(ok?10:-10));
   rep(u,'res',{u,b:m.b,ok,c:b.c,s:p.s})}
  else if(kind==='chal'){
   if(!G||G.ph!=='slaughter')return;const a=G.P[u],t=G.P[m.t],now=Date.now();
-  const maxReach=Math.max(260,swordRadius(a&&a.s)+36);
+  const maxReach=Math.max(260,swordRadius(a&&a.s)+40);
   if(!a||!t||a.o||t.o||u===m.t||now<a.cd||dist(a,t)>maxReach)return;
   a.cd=now+1400;const w=a.s>t.s?a:t.s>a.s?t:Math.random()<.5?a:t,l=w===a?t:a;
   w.s+=10;l.s=Math.max(0,l.s-10);l.o=1;
@@ -238,7 +243,7 @@ function newPlayer(G){return{x:200+Math.random()*(G.W-400),y:200+Math.random()*(
 
 async function start(){
  const v=vocab.filter(full).map(r=>r.map(c=>String(c).trim()));
- if(!v.length)return alert('Add at least 1 complete question (question + correct option + 2 wrong options).');
+ if(!v.length)return alert('Add at least 1 complete question (English vocab + correct meaning + 2 wrong meanings).');
  const names=[...online()];if(!names.length)return alert('No students are logged in yet.');
  await syncVocabToDB(false);
  const W=2400,H=1600,n=+$('nb').value||12,boxes=[],P={};
@@ -247,7 +252,7 @@ async function start(){
  const AVS=shuf(AVS0),H0=Math.random()*360,HS=shuf(names.map((_,i)=>i));
  names.forEach((u,i)=>P[u]={x:200+Math.random()*(W-400),y:200+Math.random()*(H-400),s:100,o:0,cd:0,b:null,a:AVS[i%AVS.length],h:Math.round((H0+HS[i]*360/names.length)%360)});
  api('va_msgs?id=gt.0','DELETE');
- G={ph:'explore',e:Date.now()+(+$('em').value||2)*60000,slay:(+$('sm').value||3)*60000,W,H,boxes,P,log:[],duels:[],bv:Date.now(),bk:''};
+ G={ph:'explore',e:Date.now()+(+$('em').value||2)*60000,slay:(+$('sm').value||3)*60000,W,H,boxes,P,log:[],duels:[],answered:new Set(),bv:Date.now(),bk:''};
  ev('🚀 Game started with '+names.length+' players!')}
 
 function ev(t){G.log.unshift(t);$('lg').innerHTML=G.log.slice(0,15).map(l=>`<div>${esc(l)}</div>`).join('')}
@@ -308,3 +313,4 @@ function live(){$('lv').style.display=G?'block':'none';$('go').disabled=!!G;if(!
 
 if(sessionStorage.va_host){$('ov').remove();boot()}
 </script></body></html>
+```[cite: 2, 3, 4]
