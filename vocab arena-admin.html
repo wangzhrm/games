@@ -21,12 +21,20 @@ button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:not-allow
 .row{display:flex;gap:10px;align-items:center;margin:8px 0;flex-wrap:wrap}.row label{flex:1;font-size:14px}.row input{width:80px}
 #vb input{min-width:90px}#vb td:first-child input{min-width:160px}
 #ov{position:fixed;inset:0;background:#12122a;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;z-index:9}
+#ov form{display:flex;flex-direction:column;gap:10px;align-items:center}
 #ov input{width:240px}
 #lv{display:none;margin-top:16px}
 #lph{font-size:24px;font-weight:bold}
 #dbStatus{font-size:12px;color:#b8c0ff}
 </style></head><body>
-<div id="ov"><h1>🎮 Vocab Arena</h1><input id="lu" placeholder="Admin username"><input id="lp" type="password" placeholder="Password" onkeydown="if(event.key=='Enter')adminLogin()"><button onclick="adminLogin()">Log in</button></div>
+<div id="ov">
+  <h1>🎮 Vocab Arena</h1>
+  <form onsubmit="event.preventDefault();adminLogin()">
+    <input id="lu" placeholder="Admin username" autocomplete="username">
+    <input id="lp" type="password" placeholder="Password" autocomplete="current-password">
+    <button type="submit">Log in</button>
+  </form>
+</div>
 
 <h1>🎮 Vocab Arena · Host Console</h1>
 <div class="g">
@@ -36,10 +44,10 @@ button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:not-allow
   <div class="row"><input type="file" id="xl" accept=".xlsx,.xls" style="width:auto"><small>Column A = question, B = <b>correct</b> option, C &amp; D = wrong options. The correct option is shuffled on the player page.</small></div>
   <div class="sc"><table><tr><th>Question</th><th>✔ Correct (2nd)</th><th>Option 3</th><th>Option 4</th><th></th></tr><tbody id="vb"></tbody></table></div>
   <div class="row">
-   <button onclick="vocab.push(['','','','']);rv();sv()">+ Add row</button>
-   <button onclick="syncVocabToDB(true)">☁️ Save / Upload to Database</button>
-   <button onclick="loadVocabFromDB(true)">↻ Reload from Database</button>
-   <button onclick="if(confirm('Clear all questions?')){vocab=[['','','','']];rv();sv()}">Clear all</button>
+   <button type="button" onclick="vocab.push(['','','','']);rv();sv()">+ Add row</button>
+   <button type="button" onclick="syncVocabToDB(true)">☁️ Save / Upload to Database</button>
+   <button type="button" onclick="loadVocabFromDB(true)">↻ Reload from Database</button>
+   <button type="button" onclick="if(confirm('Clear all questions?')){vocab=[['','','','']];rv();sv()}">Clear all</button>
   </div></div>
  <div class="c"><h2>Game settings</h2>
   <div class="row"><label>Explore phase (minutes)</label><input id="em" type="number" min="0.5" step="0.5" value="2"></div>
@@ -49,18 +57,18 @@ button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:not-allow
   <div class="row"><label><input type="checkbox" id="ss" checked style="width:auto"> Show current marks above avatars</label></div>
   <div class="row"><label><input type="checkbox" id="sbx" checked style="width:auto"> Allow opening boxes during slaughter phase</label></div>
   <small>The three checkboxes above apply live, even in the middle of a game.<br><br>Students who are logged in (green dot) when you press Start will play. Students who log in during the <b>explore phase</b> are added automatically. Players who disconnect stay in the game (static) and can log in again to resume.<br><br>Keep this window open and visible during a game.</small>
-  <button class="go" id="go" onclick="start()">🚀 START GAME</button></div>
+  <button type="button" class="go" id="go" onclick="start()">🚀 START GAME</button></div>
 </div>
 <div class="c" id="lv"><h2>Live game</h2><div id="lph"></div>
- <div class="row"><button onclick="fin()">End game now</button><button onclick="G=null;live()">Back to lobby (new round)</button></div>
+ <div class="row"><button type="button" onclick="fin()">End game now</button><button type="button" onclick="G=null;live()">Back to lobby (new round)</button></div>
  <div class="g"><div class="sc"><table><tr><th>#</th><th>Player</th><th>Marks</th><th>Status</th></tr><tbody id="sb"></tbody></table></div><div id="lg" class="sc"></div></div></div>
 
 <script>
-/* ===== Tencent CloudBase connection ===== */
 const TCB_ENV='civil-prawn-d0gflguvzee35fad8';
 const TCB_REST_URL=`https://${TCB_ENV}.api.tcloudbasegateway.com/v1/rdb/rest`;
 const TCB_PUBLISHABLE_KEY='eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw';
 const enc=encodeURIComponent;
+
 async function api(path,method,body,prefer){
   try{
     const h={apikey:TCB_PUBLISHABLE_KEY,Authorization:'Bearer '+TCB_PUBLISHABLE_KEY};
@@ -71,12 +79,13 @@ async function api(path,method,body,prefer){
     const t=await r.text();return t?JSON.parse(t):[];
   }catch(e){console.warn('[VocabArena] API failed',path,e);return null}
 }
+
 async function tcbSelect(path){
   const r=await api(path);
   return r===null?{data:null,error:{message:'request failed (check table permissions / network)'}}:{data:Array.isArray(r)?r:[],error:null};
 }
-const upsert=(table,row)=>api(table,'POST',row,'resolution=merge-duplicates,return=minimal');
 
+const upsert=(table,row)=>api(table,'POST',row,'resolution=merge-duplicates,return=minimal');
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cl=(v,a,b)=>Math.min(b,Math.max(a,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -87,7 +96,7 @@ const swordRadius=s=>cl(75+Math.max(0,(Number(s)||100)-100)*1.15,75,235);
 let vocab=JSON.parse(localStorage.va_vocab||'[["","","",""]]').map(r=>[0,1,2,3].map(j=>r[j]||'')),students=[],G=null,tn=0,syncTimer=null;
 if(!vocab.length)vocab=[['','','','']];
 const full=r=>r.every(c=>String(c).trim());
-const AVS0=[...'🐱🐶🦊🐼🐸🐵🦁🐯🐰🐨🐷🐙🦄🐧🐢🦉🐻🐮🐔🦋🐞🐳🐬🦈🐝🦀🐊🦒🦓🐘🦔🦜🦩🐲🐺🦖🦕🐌🦑'];
+const AVS0=['🐱','🐶','🦊','🐼','🐸','🐵','🦁','🐯','🐰','🐨','🐷','🐙','🦄','🐧','🐢','🦉','🐻','🐮','🐔','🦋','🐞','🐳','🐬','🦈','🐝','🦀','🐊','🦒','🦓','🐘','🦔','🦜','🦩','🐲','🐺','🦖','🦕','🐌','🦑'];
 
 function setDbStatus(msg){const el=$('dbStatus');if(el)el.textContent='· '+msg}
 
@@ -134,9 +143,17 @@ const sv=()=>{
   syncTimer=setTimeout(()=>syncVocabToDB(false),700);
 };
 
-function adminLogin(){if($('lu').value==='wangzhrm'&&$('lp').value==='wang123'){sessionStorage.va_host=1;$('ov').remove();boot()}else alert('Wrong credentials')}
+function adminLogin(){
+  if($('lu').value==='wangzhrm'&&$('lp').value==='wang123'){
+    sessionStorage.va_host='1';
+    $('ov').remove();
+    boot();
+  }else{
+    alert('Wrong credentials');
+  }
+}
 
-function rv(){$('vb').innerHTML=vocab.map((r,i)=>'<tr>'+[0,1,2,3].map(j=>`<td><input value="${esc(r[j])}" oninput="vocab[${i}][${j}]=this.value;sv();cnt()"></td>`).join('')+`<td><button onclick="vocab.splice(${i},1);if(!vocab.length)vocab=[['','','','']];rv();sv()">✕</button></td></tr>`).join('');cnt()}
+function rv(){$('vb').innerHTML=vocab.map((r,i)=>'<tr>'+[0,1,2,3].map(j=>`<td><input value="${esc(r[j])}" oninput="vocab[${i}][${j}]=this.value;sv();cnt()"></td>`).join('')+`<td><button type="button" onclick="vocab.splice(${i},1);if(!vocab.length)vocab=[['','','','']];rv();sv()">✕</button></td></tr>`).join('');cnt()}
 const cnt=()=>$('vc').textContent=vocab.filter(full).length;
 
 $('xl').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
@@ -230,7 +247,7 @@ async function start(){
  const AVS=shuf(AVS0),H0=Math.random()*360,HS=shuf(names.map((_,i)=>i));
  names.forEach((u,i)=>P[u]={x:200+Math.random()*(W-400),y:200+Math.random()*(H-400),s:100,o:0,cd:0,b:null,a:AVS[i%AVS.length],h:Math.round((H0+HS[i]*360/names.length)%360)});
  api('va_msgs?id=gt.0','DELETE');
- G={ph:'explore',e:Date.now()+(+$('em').value\vert{}\vert{}2)*60000,slay:(+$('sm').value||3)*60000,W,H,boxes,P,log:[],duels:[],bv:Date.now(),bk:''};
+ G={ph:'explore',e:Date.now()+(+$('em').value||2)*60000,slay:(+$('sm').value||3)*60000,W,H,boxes,P,log:[],duels:[],bv:Date.now(),bk:''};
  ev('🚀 Game started with '+names.length+' players!')}
 
 function ev(t){G.log.unshift(t);$('lg').innerHTML=G.log.slice(0,15).map(l=>`<div>${esc(l)}</div>`).join('')}
