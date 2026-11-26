@@ -1,69 +1,69 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vocab Arena · Host Console</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Vocab Arena</title>
 <style>
-:root{--card:#1e1e40;--acc:#ffd54a;--ok:#3ddc97}
-*{box-sizing:border-box}
-body{margin:0;padding:18px;font-family:"Trebuchet MS",system-ui,sans-serif;background:radial-gradient(circle at 20% 0,#2f2270,#12122a 60%) fixed;color:#f3f3ff}
-h1{margin:0;font-size:30px}
-.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:16px}
-.c{background:var(--card);border-radius:16px;padding:16px;border:1px solid #3a3a70}
-.c h2{margin:0 0 10px;font-size:17px;color:var(--acc)}
-.sc{max-height:340px;overflow:auto}
-table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:5px;border-bottom:1px solid #2f2f5c;text-align:left}
-input{background:#12122a;border:1px solid #444a8a;color:#fff;border-radius:8px;padding:6px 8px;width:100%}
-button{background:#3a3a80;color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:bold}
-button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:not-allowed}
-.go{background:linear-gradient(90deg,#ff4d8d,#ff9f43);font-size:20px;padding:14px 28px;width:100%;margin-top:10px}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#555;margin-right:8px}
-.dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
-.row{display:flex;gap:10px;align-items:center;margin:8px 0;flex-wrap:wrap}.row label{flex:1;font-size:14px}.row input{width:80px}
-#vb input{min-width:90px}#vb td:first-child input{min-width:160px}
-#ov{position:fixed;inset:0;background:#12122a;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;z-index:9}
-#ov form{display:flex;flex-direction:column;gap:10px;align-items:center}
-#ov input{width:240px}
-#lv{display:none;margin-top:16px}
-#lph{font-size:24px;font-weight:bold}
-#dbStatus{font-size:12px;color:#b8c0ff}
+*{box-sizing:border-box;user-select:none}
+body{margin:0;overflow:hidden;background:#12122a;font-family:"Trebuchet MS",system-ui,sans-serif;color:#fff}
+canvas{position:fixed;inset:0;touch-action:none}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(circle,#3a2a8c,#12122a);z-index:20;text-align:center;padding:20px}
+.ov h1{font-size:44px;margin:0}.ov input{width:260px;padding:12px;border-radius:12px;border:0;font-size:16px}
+.ov button{padding:12px 30px;border-radius:12px;border:0;background:linear-gradient(90deg,#ff4d8d,#ff9f43);color:#fff;font-size:18px;font-weight:bold;cursor:pointer}
+#lb0,#end{display:none}
+.hud{position:fixed;z-index:5;pointer-events:none;background:#000a;border-radius:14px;padding:8px 14px}
+#s0{left:12px;top:12px;border:2px solid #ffd54a}#sc{font-size:34px;font-weight:bold;color:#ffd54a;display:inline-block}
+.pop{animation:pop .4s}@keyframes pop{50%{transform:scale(1.6)}}
+#ph{left:50%;top:12px;transform:translateX(-50%);font-size:20px;font-weight:bold;white-space:nowrap}
+body.slay #ph{background:#b0102a}
+#lb,#fd{display:none!important}
+@keyframes fi{from{opacity:0;transform:translateX(-20px)}}
+#out{left:50%;bottom:80px;transform:translateX(-50%);display:none;background:#b0102a}
+#cd{position:fixed;inset:0;z-index:8;pointer-events:none;display:none;text-align:center;padding-top:14vh;text-shadow:0 0 30px #f04}
+#cdn{font-size:180px;font-weight:bold;color:#ff4d6d;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.25)}}
+@keyframes bob{to{transform:translateY(-6px)}}
+#bn{position:fixed;left:0;right:0;top:35%;text-align:center;z-index:9;pointer-events:none;font-size:46px;font-weight:bold;transform:scale(0);text-shadow:0 0 20px #f04}
+#bn.show{animation:ban 2.4s}@keyframes ban{15%,80%{transform:scale(1)}100%{transform:scale(0)}}
+#bn small{display:block;font-size:20px}
+#ac{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:6}
+#ac button{display:none;font-size:20px;padding:14px 22px;border-radius:16px;border:0;font-weight:bold;cursor:pointer;animation:bob .5s infinite alternate}
+#bo{background:#ffd54a;color:#333}#bc{background:#ff4d6d;color:#fff}
+#ts{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#000c;padding:8px 18px;border-radius:12px;z-index:30;display:none}
+#qm{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:15}
+.qc{background:linear-gradient(#2b2470,#1a1650);border:3px solid #ffd54a;border-radius:24px;padding:28px;width:min(480px,92vw);max-height:92vh;overflow:auto;text-align:center;animation:pop .35s}
+#qw{font-size:30px;font-weight:bold;margin-bottom:18px;color:#ffd54a;word-break:break-word}
+#qo button{display:block;width:100%;margin:10px 0;padding:14px;font-size:20px;border-radius:14px;border:0;background:#fff;color:#222;font-weight:bold;cursor:pointer;word-break:break-word}
+#qo button:hover:not(:disabled){background:#ffe680}
+#qo .ok{background:#3ddc97!important}#qo .no{background:#ff4d6d!important;color:#fff}
+#rk div{background:#ffffff22;margin:6px;padding:8px 20px;border-radius:12px;min-width:min(340px,86vw);font-size:20px;animation:fi .5s backwards}
+#rk .me{background:#ffd54a;color:#222;font-weight:bold}
+#dl h2{margin:16px 0 4px;font-size:18px;color:#ffd54a}
+#dl div{background:#ffffff14;margin:4px auto;padding:6px 16px;border-radius:10px;max-width:min(360px,86vw);font-size:15px}
 </style></head><body>
-<div id="ov">
-  <h1>🎮 Vocab Arena</h1>
-  <form onsubmit="event.preventDefault();adminLogin()">
-    <input id="lu" placeholder="Admin username" autocomplete="username">
-    <input id="lp" type="password" placeholder="Password" autocomplete="current-password">
-    <button type="submit">Log in</button>
-  </form>
-</div>
+<canvas id="c"></canvas>
 
-<h1>🎮 Vocab Arena · Host Console</h1>
-<div class="g">
- <div class="c"><h2>Students (<span id="onc">0</span> online)</h2>
-  <div class="sc"><table><tr><th>Username</th><th>Password</th></tr><tbody id="st"></tbody></table></div></div>
- <div class="c" style="grid-column:span 2"><h2>Questions (<span id="vc">0</span> complete) <span id="dbStatus">· Cloud sync ready</span></h2>
-  <div class="row"><input type="file" id="xl" accept=".xlsx,.xls" style="width:auto"><small>Column A = question, B = <b>correct</b> option, C &amp; D = wrong options. The correct option is shuffled on the player page.</small></div>
-  <div class="sc"><table><tr><th>Question</th><th>✔ Correct (2nd)</th><th>Option 3</th><th>Option 4</th><th></th></tr><tbody id="vb"></tbody></table></div>
-  <div class="row">
-   <button type="button" onclick="vocab.push(['','','','']);rv();sv()">+ Add row</button>
-   <button type="button" onclick="syncVocabToDB(true)">☁️ Save / Upload to Database</button>
-   <button type="button" onclick="loadVocabFromDB(true)">↻ Reload from Database</button>
-   <button type="button" onclick="if(confirm('Clear all questions?')){vocab=[['','','','']];rv();sv()}">Clear all</button>
-  </div></div>
- <div class="c"><h2>Game settings</h2>
-  <div class="row"><label>Explore phase (minutes)</label><input id="em" type="number" min="0.5" step="0.5" value="2"></div>
-  <div class="row"><label>Slaughter phase (minutes) — "x"</label><input id="sm" type="number" min="0.5" step="0.5" value="3"></div>
-  <div class="row"><label>Number of boxes on map</label><input id="nb" type="number" min="3" value="12"></div>
-  <div class="row"><label><input type="checkbox" id="sn" checked style="width:auto"> Show player names above avatars</label></div>
-  <div class="row"><label><input type="checkbox" id="ss" checked style="width:auto"> Show current marks above avatars</label></div>
-  <div class="row"><label><input type="checkbox" id="sbx" checked style="width:auto"> Allow opening boxes during slaughter phase</label></div>
-  <small>The three checkboxes above apply live, even in the middle of a game.<br><br>Students who are logged in (green dot) when you press Start will play. Students who log in during the <b>explore phase</b> are added automatically. Players who disconnect stay in the game (static) and can log in again to resume.<br><br>Keep this window open and visible during a game.</small>
-  <button type="button" class="go" id="go" onclick="start()">🚀 START GAME</button></div>
+<div class="ov" id="lg">
+  <h1>⚔️ Vocab Arena</h1>
+  <form onsubmit="event.preventDefault();login()" style="display:flex;flex-direction:column;align-items:center;gap:10px">
+    <input id="u" placeholder="Username" autocomplete="username">
+    <input id="p" type="password" placeholder="Password" autocomplete="current-password">
+    <button type="submit">Enter the arena</button>
+  </form>
+  <div id="er" style="color:#ff8fa3;display:none">Wrong username or password.</div>
 </div>
-<div class="c" id="lv"><h2>Live game</h2><div id="lph"></div>
- <div class="row"><button type="button" onclick="fin()">End game now</button><button type="button" onclick="G=null;live()">Back to lobby (new round)</button></div>
- <div class="g"><div class="sc"><table><tr><th>#</th><th>Player</th><th>Marks</th><th>Status</th></tr><tbody id="sb"></tbody></table></div><div id="lg" class="sc"></div></div></div>
+<div class="ov" id="lb0"><h1>🎮 Get ready!</h1><div id="lm" style="font-size:20px">Waiting for the teacher to start…</div><div id="ro" style="font-size:18px"></div></div>
+
+<div class="hud" id="s0">Marks <span id="sc">100</span></div>
+<div class="hud" id="ph"></div><div class="hud" id="lb"></div><div class="hud" id="fd"></div><div class="hud" id="out">💀 You're out of duels — keep opening boxes!</div>
+<div id="cd"><div style="font-size:26px;font-weight:bold">⚔️ SLAUGHTER BEGINS IN</div><div id="cdn"></div></div>
+<div id="bn"></div><div id="ts"></div>
+<div id="ac"><button id="bo" onclick="openBox()">🎁 Open box (E)</button><button id="bc" onclick="chal()">⚔️ Challenge</button></div>
+<div id="qm"><div class="qc"><div id="qw"></div><div id="qo"></div></div></div>
+<div class="ov" id="end"><h1>🏁 Final Ranking</h1><div id="rk"></div><div id="dl" style="margin-top:6px"></div><div>Waiting for the teacher to start a new round…</div></div>
 
 <script>
+const $=id=>document.getElementById(id);
+
+/* ===== Tencent CloudBase connection ===== */
 const TCB_ENV='civil-prawn-d0gflguvzee35fad8';
 const TCB_REST_URL=`https://${TCB_ENV}.api.tcloudbasegateway.com/v1/rdb/rest`;
 const TCB_PUBLISHABLE_KEY='eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw';
@@ -79,232 +79,312 @@ async function api(path,method,body,prefer){
     const t=await r.text();return t?JSON.parse(t):[];
   }catch(e){console.warn('[VocabArena] API failed',path,e);return null}
 }
+async function tcbSelect(path){const r=await api(path);return Array.isArray(r)?r:[]}
 
-async function tcbSelect(path){
-  const r=await api(path);
-  return r===null?{data:null,error:{message:'request failed (check table permissions / network)'}}:{data:Array.isArray(r)?r:[],error:null};
+/* ===== Retrieve uploaded vocabulary list from va_vocab ===== */
+let vocabBank=[],vocabFetched=false;
+async function fetchVocabBank(force=false){
+  if(vocabFetched&&!force&&vocabBank.length)return vocabBank;
+  const rows=await tcbSelect('va_vocab?select=question,correct_option,wrong_option_1,wrong_option_2,sort_order&order=sort_order.asc,id.asc');
+  if(rows.length){
+    vocabBank=rows
+      .filter(r=>r.question&&r.correct_option&&r.wrong_option_1&&r.wrong_option_2)
+      .map(r=>({
+        w:String(r.question).trim(),
+        c:String(r.correct_option).trim(),
+        wrong:[String(r.wrong_option_1).trim(),String(r.wrong_option_2).trim()]
+      }));
+    vocabFetched=true;
+  }
+  return vocabBank;
 }
 
-const upsert=(table,row)=>api(table,'POST',row,'resolution=merge-duplicates,return=minimal');
-const $=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const cl=(v,a,b)=>Math.min(b,Math.max(a,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+/* ===== game constants / helpers ===== */
+const cv=$('c'),x=cv.getContext('2d'),SP=270;
+const av=n=>pl[n]&&pl[n].a||'🙂',col=n=>`hsl(${pl[n]?pl[n].h:0},80%,58%)`;
+const cl=(v,a,b)=>Math.min(b,Math.max(a,v)),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt=r=>{const s=Math.ceil(r/1000);return (s/60|0)+':'+String(s%60).padStart(2,'0')};
+const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* Sword length & challenge radius grow as player score increases */
 const swordRadius=s=>cl(75+Math.max(0,(Number(s)||100)-100)*1.15,75,235);
 
-let vocab=JSON.parse(localStorage.va_vocab||'[["","","",""]]').map(r=>[0,1,2,3].map(j=>r[j]||'')),students=[],G=null,tn=0,syncTimer=null;
-if(!vocab.length)vocab=[['','','','']];
-const full=r=>r.every(c=>String(c).trim());
-const AVS0=['🐱','🐶','🦊','🐼','🐸','🐵','🦁','🐯','🐰','🐨','🐷','🐙','🦄','🐧','🐢','🦉','🐻','🐮','🐔','🦋','🐞','🐳','🐬','🦈','🐝','🦀','🐊','🦒','🦓','🐘','🦔','🦜','🦩','🐲','🐺','🦖','🦕','🐌','🦑'];
+let me,S,off=0,pl={},M={x:0,y:0},inited=0,keys={},ptr=null,qb=null,curQ=null,picked,done=new Set(),ph0='',shake=0,parts=[],fl=[],lastSec=-1,ac,near={b:-1,p:null},sv=-1,last=0,known={},outMsg="💀 You're out of duels — keep opening boxes!",autoCd={};
+let sd=12345;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
+const DEC=[];for(let i=0;i<140;i++)DEC.push({x:rnd()*2400,y:rnd()*1600,e:['🌳','🌲','🌷','🍄','🪨','🌻','🌿'][i%7],s:24+rnd()*24|0});
 
-function setDbStatus(msg){const el=$('dbStatus');if(el)el.textContent='· '+msg}
+const txp=(ev,p)=>api('va_msgs','POST',{to_user:'HOST',ev,payload:JSON.stringify(p),ts:Date.now()},'return=minimal');
 
-async function syncVocabToDB(showAlert=false){
-  setDbStatus('Uploading to va_vocab...');
-  const clean=vocab.filter(full).map((r,idx)=>({
-    id:idx+1,
-    question:String(r[0]).trim(),
-    correct_option:String(r[1]).trim(),
-    wrong_option_1:String(r[2]).trim(),
-    wrong_option_2:String(r[3]).trim(),
-    sort_order:idx,
-    updated_at:Date.now()
-  }));
-  const delRes=await api('va_vocab?id=gt.0','DELETE');
-  if(delRes===null){setDbStatus('Upload failed (check va_vocab table)');if(showAlert)alert('Failed to update va_vocab in database.');return}
-  if(clean.length){
-    const insRes=await api('va_vocab','POST',clean,'return=minimal');
-    if(insRes===null){setDbStatus('Upload failed on insert');if(showAlert)alert('Failed to upload questions to va_vocab.');return}
-  }
-  setDbStatus(`Synced ${clean.length} questions to va_vocab`);
-  if(showAlert)alert(`Uploaded ${clean.length} complete questions to va_vocab.`);
+function beep(f,d=.12,t='sine',v=.12){try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+function toast(m){const t=$('ts');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',2200)}
+function banner(a,b){const e=$('bn');e.innerHTML=a+'<small>'+b+'</small>';e.classList.remove('show');void e.offsetWidth;e.classList.add('show')}
+const burst=(px,py,c)=>{for(let i=0;i<26;i++)parts.push({x:px,y:py,vx:(Math.random()-.5)*9,vy:-Math.random()*7,c,l:40})};
+const float=(t,px,py,c)=>fl.push({t,x:px,y:py,c,l:60});
+
+async function login(){try{ac=ac||new AudioContext()}catch(e){}
+ const u=$('u').value.trim(),p=$('p').value;
+ const eu=enc(u),ep=enc(p);
+ const accRows=await tcbSelect(`student_accounts?select=username&username=eq.${eu}&password=eq.${ep}&limit=1`);
+ const ok=accRows.length>0;
+ if(!ok)return $('er').style.display='block';
+ sessionStorage.va_u=u;enter(u)}
+if(sessionStorage.va_u)setTimeout(()=>enter(sessionStorage.va_u),0);
+
+/* ===== polling layer ===== */
+let lastN=0,lastStAt=Date.now(),bv=null,bxD=null,duelSeen=null,stBusy=0,bxBusy=0;
+let inLast=null,inBusy=0,waitUntil=0,entered=0;
+
+function sendPos(){
+ api('va_players','POST',{username:me,x:inited?(M.x|0):null,y:inited?(M.y|0):null,t:Date.now()},'resolution=merge-duplicates,return=minimal')}
+
+async function pollSt(){
+ if(stBusy)return;stBusy=1;
+ const r=await api('va_state?select=data&id=eq.st');stBusy=0;
+ if(r&&r[0]){try{onSt(JSON.parse(r[0].data))}catch(e){console.warn(e)}}
+ if(S&&S.p!=='lobby'&&S.p!=='ended'&&Date.now()-lastStAt>10000)toast('Lost contact with the teacher console…')}
+
+async function pollBx(){
+ if(bxBusy)return;bxBusy=1;
+ const r=await api('va_state?select=data&id=eq.bx');bxBusy=0;
+ if(r&&r[0]){try{const d=JSON.parse(r[0].data);bxD=d;bv=d.v;
+  if(S&&S.p!=='lobby'){S.b=d.b;S.dl=d.dl||[];S.dl.forEach(z=>{if(z.a===me)known[z.t]=1;if(z.t===me)known[z.a]=1});handleDuels(S.dl)}}catch(e){console.warn(e)}}}
+
+function handleDuels(dl){
+ if(duelSeen===null){duelSeen=dl.length;return}
+ while(duelSeen<dl.length)onDuel(dl[duelSeen++])}
+
+async function pollIn(){
+ if(inBusy)return;inBusy=1;
+ if(inLast===null){
+  const r=await api(`va_msgs?select=id&to_user=eq.${enc(me)}&order=id.desc&limit=1`);
+  if(r)inLast=r[0]?r[0].id:0;
+  inBusy=0;return}
+ const r=await api(`va_msgs?select=id,ev,payload&to_user=eq.${enc(me)}&id=gt.${inLast}&order=id.asc`);inBusy=0;
+ if(r)for(const m of r){inLast=Math.max(inLast,m.id);let p;try{p=JSON.parse(m.payload)}catch(e){continue}
+  if(m.ev==='q'&&!curQ)showQ(p);else if(m.ev==='res'&&!curQ)onRes(p)}}
+
+function enter(u){if(entered)return;entered=1;me=u;$('lg').style.display='none';$('lb0').style.display='flex';
+ fetchVocabBank(true);
+ pollIn();sendPos();pollSt();
+ setInterval(sendPos,700);
+ setInterval(pollSt,600);
+ setInterval(()=>{if(inLast===null||qb!==null||Date.now()<waitUntil)pollIn()},350);
+ onresize();requestAnimationFrame(loop)}
+
+function onSt(m){
+ if(m.n===lastN)return;lastN=m.n;lastStAt=Date.now();
+ if(m.p!=='lobby'){
+  if(m.bv!==bv)pollBx();
+  if(bxD){m.b=bxD.b;m.dl=bxD.dl||[]}
+  if(!m.b)return}
+ S=m;off=m.n-Date.now();
+ if(m.p==='lobby'){if(ph0!=='lobby'){pl={};inited=0;done.clear();known={};autoCd={};bv=null;bxD=null;duelSeen=null;outMsg="💀 You're out of duels — keep opening boxes!";ph0='lobby';$('end').style.display='none';document.body.classList.remove('slay');$('cd').style.display='none';fetchVocabBank(true)}
+  $('lb0').style.display='flex';$('lm').textContent='Waiting for the teacher to start…';
+  $('ro').textContent=(m.c||0)+' players joined';return}
+ for(const k in m.pl){const[a,b,s,o,e,h]=m.pl[k];const p=pl[k]||(pl[k]={dx:a,dy:b});p.x=a;p.y=b;p.s=s;p.o=o;p.a=e;p.h=h}
+ (m.dl||[]).forEach(d=>{if(d.a===me)known[d.t]=1;if(d.t===me)known[d.a]=1});
+ if(m.dl)handleDuels(m.dl);
+ const mp=pl[me];
+ if(!mp){$('lb0').style.display='flex';
+  if(m.p==='explore')$('lm').textContent='Joining the round…';
+  else $('lm').textContent='A game is already running — wait for the next round!';
+  return}
+ $('lb0').style.display='none';
+ if(!inited){M.x=mp.x;M.y=mp.y;mp.dx=mp.x;mp.dy=mp.y;inited=1;fetchVocabBank(true)}
+ if(m.p!==ph0){ph0=m.p;
+  if(m.p==='slaughter'){banner('⚔️ SLAUGHTER PHASE ⚔️','Sword circle active — anyone entering your circle is challenged automatically!'+(m.bx===0?'':' Boxes still open!'));document.body.classList.add('slay');$('cd').style.display='none';[200,150,100].forEach((f,i)=>setTimeout(()=>beep(f,.3,'sawtooth',.2),i*200))}
+  if(m.p==='ended')showEnd()}}
+
+function showEnd(){qb=null;curQ=null;$('qm').style.display='none';$('cd').style.display='none';
+ const r=Object.entries(pl).sort((a,b)=>b[1].s-a[1].s||a[1].o-b[1].o);
+ $('rk').innerHTML=r.map(([k,p],i)=>`<div class="${k===me?'me':''}" style="animation-delay:${(r.length-i)*.15}s">${['🥇','🥈','🥉'][i]||i+1+'.'} ${av(k)} ${esc(k)} <b style="float:right">${p.s}</b></div>`).join('');
+ const dl=S&&S.dl||[];
+ $('dl').innerHTML=dl.length?'<h2>⚔️ Duel Log</h2>'+dl.map(d=>{const loser=d.w===d.a?d.t:d.a;return `<div>🗡️ ${esc(d.w)} defeated ${esc(loser)}</div>`}).join(''):'';
+ $('end').style.display='flex';[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.25),i*150))}
+
+function showQ(m){
+  qb=m.b;curQ=m;
+  $('qw').textContent=m.w;
+  const o=$('qo');o.innerHTML='';
+  m.o.forEach((t,i)=>{
+    const b=document.createElement('button');b.textContent=t;
+    b.onclick=()=>{
+      picked=b;
+      [...o.children].forEach(z=>z.disabled=1);
+      const ok=(t===m.c);
+      onRes({b:qb,ok,c:m.c});
+      /* Notify host console of score update & box completion */
+      txp('ans',{u:me,b:qb,i,ok,c:m.c});
+    };
+    o.appendChild(b);
+  });
+  $('qm').style.display='flex';
+  beep(520,.1);
 }
 
-async function loadVocabFromDB(showAlert=false){
-  setDbStatus('Loading from va_vocab...');
-  const res=await tcbSelect('va_vocab?select=question,correct_option,wrong_option_1,wrong_option_2,sort_order&order=sort_order.asc,id.asc');
-  if(res.error){setDbStatus('DB load failed (using local)');if(showAlert)alert('Could not load va_vocab: '+res.error.message);return}
-  if(res.data&&res.data.length){
-    vocab=res.data.map(row=>[row.question||'',row.correct_option||'',row.wrong_option_1||'',row.wrong_option_2||'']);
-    localStorage.va_vocab=JSON.stringify(vocab);
-    rv();
-    setDbStatus(`Loaded ${res.data.length} questions from va_vocab`);
-    if(showAlert)alert(`Loaded ${res.data.length} questions from va_vocab.`);
-  }else{
-    setDbStatus('va_vocab is empty');
-    if(showAlert)alert('No questions found in va_vocab yet.');
-  }
+const closeQ=()=>{$('qm').style.display='none';qb=null;curQ=null};
+
+function onRes(m){
+ waitUntil=0;
+ if(m.er){if(m.b!=null)done.add(m.b);toast(m.er);closeQ();return}
+ [...$('qo').children].forEach(b=>{b.disabled=1;if(b.textContent===m.c)b.classList.add('ok');else if(b===picked)b.classList.add('no')});
+ done.add(m.b);
+ if(pl[me])pl[me].s=Math.max(0,(pl[me].s||0)+(m.ok?10:-10));
+ const c=m.ok?'#3ddc97':'#ff4d6d';
+ float(m.ok?'+10':'-10',M.x,M.y-40,c);burst(M.x,M.y,c);
+ if(m.ok){beep(880,.2);setTimeout(()=>beep(1175,.25),120)}else{beep(160,.35,'sawtooth',.2);shake=12}
+ setTimeout(closeQ,1100)}
+
+function onDuel(m){const a=pl[m.a],t=pl[m.t];if(!a||!t)return;
+ burst((a.dx+t.dx)/2,(a.dy+t.dy)/2,'#ffd54a');beep(300,.15,'square');setTimeout(()=>beep(220,.2,'square'),120);
+ if(m.a===me||m.t===me){
+  const opp=m.a===me?m.t:m.a;known[opp]=1;shake=16;
+  if(m.w===me)toast('🏆 You defeated '+opp+'! +10');
+  else{outMsg='💀 Defeated by '+opp+' — you can still watch the arena.';toast('💀 You were defeated by '+opp+'! −10')}}}
+
+/* Open box directly using vocabulary fetched from va_vocab in CloudBase */
+async function openBox(){
+ if(near.b<0||qb!==null)return;
+ const bi=near.b;
+ if(done.has(bi))return;
+ if(!vocabBank.length){
+  toast('Loading vocabulary from database…');
+  await fetchVocabBank(true);
+ }
+ if(!vocabBank.length){
+  toast('No vocabulary uploaded in database yet.');
+  return;
+ }
+ const item=vocabBank[(bi+Math.floor(Math.random()*vocabBank.length))%vocabBank.length];
+ const opts=shuf([item.c,item.wrong[0],item.wrong[1]]);
+ showQ({b:bi,w:item.w,c:item.c,o:opts});
 }
 
-const sv=()=>{
-  localStorage.va_vocab=JSON.stringify(vocab);
-  clearTimeout(syncTimer);
-  syncTimer=setTimeout(()=>syncVocabToDB(false),700);
-};
+const chal=(targetName)=>{const t=targetName||near.p;if(t&&qb===null)txp('chal',{u:me,t})};
+onkeydown=e=>{const k=e.key.toLowerCase();keys[k]=1;if(k==='e')openBox();if(k==='f'||k===' ')chal()};
+onkeyup=e=>keys[e.key.toLowerCase()]=0;
+cv.onpointerdown=e=>ptr={x:e.clientX,y:e.clientY};cv.onpointermove=e=>{if(ptr)ptr={x:e.clientX,y:e.clientY}};onpointerup=()=>ptr=null;
+onresize=()=>{cv.width=innerWidth;cv.height=innerHeight};
 
-function adminLogin(){
-  if($('lu').value==='wangzhrm'&&$('lp').value==='wang123'){
-    sessionStorage.va_host='1';
-    $('ov').remove();
-    boot();
-  }else{
-    alert('Wrong credentials');
+function cam(){const w=cv.width,h=cv.height;return{x:S.W<=w?(S.W-w)/2:cl(M.x-w/2,0,S.W-w),y:S.H<=h?(S.H-h)/2:cl(M.y-h/2,0,S.H-h)}}
+
+function step(dt,t){
+ const on=S.p==='explore'||S.p==='slaughter',mp=pl[me];
+ if(!mp)return;
+ if(on&&qb===null){
+  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+  if(!dx&&!dy&&ptr){const c=cam();dx=ptr.x+c.x-M.x;dy=ptr.y+c.y-M.y;if(Math.hypot(dx,dy)<14)dx=dy=0}
+  const l=Math.hypot(dx,dy);if(l){M.x=cl(M.x+dx/l*SP*dt,20,S.W-20);M.y=cl(M.y+dy/l*SP*dt,20,S.H-20)}}
+ mp.dx=M.x;mp.dy=M.y;
+ for(const k in pl)if(k!==me){const p=pl[k];p.dx+=(p.x-p.dx)*Math.min(1,dt*5);p.dy+=(p.y-p.dy)*Math.min(1,dt*5)}
+ near={b:-1,p:null};
+ if(on&&qb===null){
+  let bd=90;
+  if(S.p==='explore'||S.bx!==0)S.b.forEach((b,i)=>{const d=Math.hypot(b[0]-M.x,b[1]-M.y);if(!done.has(i)&&d<bd){bd=d;near.b=i}});
+  if(S.p==='slaughter'&&!mp.o){
+   const myR=swordRadius(mp.s);
+   let bestD=Infinity;
+   const now=Date.now();
+   for(const k in pl){
+    const o=pl[k];if(k===me||o.o)continue;
+    const d=Math.hypot(o.dx-M.x,o.dy-M.y);
+    /* Highlight target within sword reach */
+    if(d<=myR+22&&d<bestD){bestD=d;near.p=k}
+    /* Automatically challenge any active player entering your sword circle */
+    if(d<=myR+20&&(!autoCd[k]||now-autoCd[k]>1500)){
+     autoCd[k]=now;
+     chal(k);
+    }
+   }
   }
+ }
+ $('bo').style.display=near.b>=0?'block':'none';$('bc').style.display=near.p?'block':'none';
+ if(near.p)$('bc').textContent='⚔️ Challenge (F)'}
+
+function drawSwordCircle(px,py,radius,angle,hue){
+ x.save();
+ /* Outer sword sweep boundary circle */
+ x.strokeStyle=`hsla(${hue},95%,65%,0.42)`;
+ x.setLineDash([8,8]);
+ x.lineWidth=2.5;
+ x.beginPath();
+ x.arc(px,py,radius,0,Math.PI*2);
+ x.stroke();
+ x.setLineDash([]);
+
+ const tipX=px+Math.cos(angle)*radius;
+ const tipY=py+Math.sin(angle)*radius;
+ const perpX=-Math.sin(angle);
+ const perpY=Math.cos(angle);
+
+ /* Rotating sword blade */
+ x.strokeStyle='#ffd54a';
+ x.lineWidth=5;
+ x.lineCap='round';
+ x.beginPath();
+ x.moveTo(px,py);
+ x.lineTo(tipX,tipY);
+ x.stroke();
+
+ /* Crossguard near the blade tip */
+ const guardX=px+Math.cos(angle)*(radius-14);
+ const guardY=py+Math.sin(angle)*(radius-14);
+ x.strokeStyle='#ffffff';
+ x.lineWidth=4;
+ x.beginPath();
+ x.moveTo(guardX-perpX*9,guardY-perpY*9);
+ x.lineTo(guardX+perpX*9,guardY+perpY*9);
+ x.stroke();
+
+ /* Glowing tip */
+ x.fillStyle='#ff4d6d';
+ x.beginPath();
+ x.arc(tipX,tipY,6,0,Math.PI*2);
+ x.fill();
+ x.restore();
 }
 
-function rv(){$('vb').innerHTML=vocab.map((r,i)=>'<tr>'+[0,1,2,3].map(j=>`<td><input value="${esc(r[j])}" oninput="vocab[${i}][${j}]=this.value;sv();cnt()"></td>`).join('')+`<td><button type="button" onclick="vocab.splice(${i},1);if(!vocab.length)vocab=[['','','','']];rv();sv()">✕</button></td></tr>`).join('');cnt()}
-const cnt=()=>$('vc').textContent=vocab.filter(full).length;
-
-$('xl').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
- r.onload=q=>{const wb=XLSX.read(new Uint8Array(q.target.result),{type:'array'});
-  const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
-  const add=rows.map(r=>[0,1,2,3].map(j=>r[j]==null?'':String(r[j]).trim())).filter(full);
-  vocab=vocab.filter(r=>r.some(c=>c)).concat(add);if(!vocab.length)vocab=[['','','','']];rv();sv();e.target.value='';alert(add.length+' questions imported (rows need all 4 columns filled).')};
- r.readAsArrayBuffer(f)};
-
-const seen={};
-const ONLINE_MS=8000;
-const online=()=>new Set(Object.keys(seen).filter(k=>seen[k].at&&Date.now()-seen[k].at<ONLINE_MS));
-async function loadStudents(){
- const a=await tcbSelect('student_accounts?select=username,password&order=username.asc');
- if(a.error)alert('Load student_accounts failed: '+a.error.message);
- students=(a.data||[]).map(s=>({username:s.username,password:s.password,src:''}));
- rs()}
-function rs(){const on=online();
- $('st').innerHTML=students.map(s=>`<tr><td><span class="dot ${on.has(s.username)?'on':''}"></span>${esc(s.username)}${s.src?` <small style="background:#e0a800;color:#332;padding:1px 6px;border-radius:5px">${s.src}</small>`:''}</td><td>${esc(s.password)}</td></tr>`).join('');
- $('onc').textContent=on.size+' / '+students.length;if(G)live()}
-
-let pBusy=0;
-async function pollPlayers(){
- if(pBusy)return;pBusy=1;
- const r=await api('va_players?select=username,x,y,t');pBusy=0;
- if(!r)return;const now=Date.now();
- r.forEach(row=>{
-  const s=seen[row.username]||(seen[row.username]={t:row.t,at:0});
-  if(s.t!==row.t){s.t=row.t;s.at=now}
-  const p=G&&G.P[row.username];
-  if(p&&G.ph!=='ended'&&row.x!=null&&row.y!=null){p.x=cl(row.x,0,G.W);p.y=cl(row.y,0,G.H)}});
- rs()}
-
-const rep=(u,ev,p)=>api('va_msgs','POST',{to_user:u,ev,payload:JSON.stringify(p),ts:Date.now()},'return=minimal');
-const act=()=>G&&(G.ph==='explore'||(G.ph==='slaughter'&&$('sbx').checked));
-let hLast=null,mBusy=0;
-async function pollMsgs(){
- if(mBusy)return;mBusy=1;
- if(hLast===null){
-  const r=await api('va_msgs?select=id&to_user=eq.HOST&order=id.desc&limit=1');
-  if(r)hLast=r[0]?r[0].id:0;
-  mBusy=0;return}
- const r=await api('va_msgs?select=id,ev,payload&to_user=eq.HOST&id=gt.'+hLast+'&order=id.asc');mBusy=0;
- if(!r)return;
- for(const m of r){hLast=Math.max(hLast,m.id);let p;try{p=JSON.parse(m.payload)}catch(e){continue}
-  if(p&&p.u)onMsg(m.ev,p)}}
-
-function onMsg(kind,m){const u=m.u;
- if(kind==='open'){
-  if(!act())return rep(u,'res',{u,er:'Boxes are closed right now'});
-  const p=G.P[u],b=G.boxes[m.b];
-  if(!p||!b)return rep(u,'res',{u,er:'You are not in this round yet — please wait a moment'});
-  if(m.x!=null){p.x=cl(m.x,0,G.W);p.y=cl(m.y,0,G.H)}
-  if(b.d.includes(u))return rep(u,'res',{u,b:m.b,er:'You already answered this box!'});
-  if(dist(p,b)>200)return rep(u,'res',{u,er:'Too far from the box'});
-  p.b=m.b;rep(u,'q',{u,b:m.b,w:b.w,o:b.o})}
- else if(kind==='ans'){
-  const p=G&&G.P[u],b=p&&G.boxes[m.b];if(!b)return;
-  if(b.d.includes(u))return rep(u,'res',{u,b:m.b,er:'Already answered'});
-  if(!act())return rep(u,'res',{u,er:'Time is up'});
-  if(p.b!==m.b)return rep(u,'res',{u,er:'Question expired — open the box again'});
-  p.b=null;b.d.push(u);const ok=b.o[m.i]===b.c;p.s=Math.max(0,p.s+(ok?10:-10));
-  rep(u,'res',{u,b:m.b,ok,c:b.c,s:p.s})}
- else if(kind==='chal'){
-  if(!G||G.ph!=='slaughter')return;const a=G.P[u],t=G.P[m.t],now=Date.now();
-  const maxReach=Math.max(260,swordRadius(a&&a.s)+36);
-  if(!a||!t||a.o||t.o||u===m.t||now<a.cd||dist(a,t)>maxReach)return;
-  a.cd=now+1400;const w=a.s>t.s?a:t.s>a.s?t:Math.random()<.5?a:t,l=w===a?t:a;
-  w.s+=10;l.s=Math.max(0,l.s-10);l.o=1;
-  const wn=w===a?u:m.t,ln=w===a?m.t:u;
-  G.duels.push({a:u,t:m.t,w:wn});
-  ev(`⚔️ ${wn} defeated ${ln}!`)}}
-
-function boot(){rv();loadVocabFromDB(false);
- ['sn','ss','sbx'].forEach(id=>{const e=$(id),v=localStorage['va_'+id];if(v!=null)e.checked=v==='1';e.onchange=()=>localStorage['va_'+id]=e.checked?'1':'0'});
- loadStudents();
- pollMsgs();pollPlayers();
- try{const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),200)'])));w.onmessage=()=>tick()}
- catch(e){console.warn('Worker unavailable, using setInterval',e);setInterval(tick,200)}}
-
-function newPlayer(G){return{x:200+Math.random()*(G.W-400),y:200+Math.random()*(G.H-400),s:100,o:0,cd:0,b:null,a:AVS0[Math.random()*AVS0.length|0],h:Math.random()*360|0}}
-
-async function start(){
- const v=vocab.filter(full).map(r=>r.map(c=>String(c).trim()));
- if(!v.length)return alert('Add at least 1 complete question (question + correct option + 2 wrong options).');
- const names=[...online()];if(!names.length)return alert('No students are logged in yet.');
- await syncVocabToDB(false);
- const W=2400,H=1600,n=+$('nb').value||12,boxes=[],P={};
- for(let i=0;i<n;i++){const w=v[Math.random()*v.length|0];
-  boxes.push({x:150+Math.random()*(W-300),y:150+Math.random()*(H-300),w:w[0],c:w[1],o:shuf([w[1],w[2],w[3]]),d:[]})}
- const AVS=shuf(AVS0),H0=Math.random()*360,HS=shuf(names.map((_,i)=>i));
- names.forEach((u,i)=>P[u]={x:200+Math.random()*(W-400),y:200+Math.random()*(H-400),s:100,o:0,cd:0,b:null,a:AVS[i%AVS.length],h:Math.round((H0+HS[i]*360/names.length)%360)});
- api('va_msgs?id=gt.0','DELETE');
- G={ph:'explore',e:Date.now()+(+$('em').value||2)*60000,slay:(+$('sm').value||3)*60000,W,H,boxes,P,log:[],duels:[],bv:Date.now(),bk:''};
- ev('🚀 Game started with '+names.length+' players!')}
-
-function ev(t){G.log.unshift(t);$('lg').innerHTML=G.log.slice(0,15).map(l=>`<div>${esc(l)}</div>`).join('')}
-function ensureBoxes(){
- if(!G||G.ph==='ended'||(G.ph==='slaughter'&&!$('sbx').checked)||G.boxes.length>=400)return;
- const onlineCount=Math.max(1,online().size);
- const remaining=G.boxes.filter(b=>b.d.length<onlineCount).length;
- const target=Math.max(6,+$('nb').value||12);
- if(remaining<Math.ceil(target/2)){
-  const v=vocab.filter(full).map(r=>r.map(c=>String(c).trim()));
-  if(!v.length)return;
-  const add=Math.min(Math.ceil(target/2),400-G.boxes.length);
-  for(let i=0;i<add;i++){const w=v[Math.random()*v.length|0];
-   G.boxes.push({x:150+Math.random()*(G.W-300),y:150+Math.random()*(G.H-300),w:w[0],c:w[1],o:shuf([w[1],w[2],w[3]]),d:[]})}
- }}
-
-function fin(){if(G&&G.ph!=='ended'){G.ph='ended';ev('🏁 Game over!')}}
-
-let wBusy=0;
-async function writeState(){
- if(wBusy)return;wBusy=1;
- try{
-  if(!G){await upsert('va_state',{id:'st',data:JSON.stringify({p:'lobby',n:Date.now(),c:online().size})});return}
-  const now=Date.now();
-  const bk=G.boxes.length+'|'+G.ph+'|'+G.duels.length;
-  if(bk!==G.bk){
-   G.bk=bk;G.bv++;
-   await upsert('va_state',{id:'bx',data:JSON.stringify({v:G.bv,b:G.boxes.map(b=>[b.x|0,b.y|0]),dl:G.duels})});
+function draw(t){
+ x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,cv.width,cv.height);
+ if(!S||!inited||S.p==='lobby')return;
+ const c=cam(),sl=S.p==='slaughter';let sx=0,sy=0;
+ if(shake>0){sx=(Math.random()-.5)*shake;sy=(Math.random()-.5)*shake;shake*=.9;if(shake<.5)shake=0}
+ x.translate(-c.x+sx,-c.y+sy);
+ x.fillStyle=sl?'#3a1f2b':'#2f8f4e';x.fillRect(0,0,S.W,S.H);
+ x.fillStyle=sl?'#4a2534':'#37a05a';
+ for(let i=Math.max(0,c.x/100|0);i*100<Math.min(S.W,c.x+cv.width);i++)for(let j=Math.max(0,c.y/100|0);j*100<Math.min(S.H,c.y+cv.height);j++)if((i+j)&1)x.fillRect(i*100,j*100,100,100);
+ x.strokeStyle='#ffd54a';x.lineWidth=6;x.strokeRect(0,0,S.W,S.H);
+ x.textAlign='center';x.textBaseline='middle';
+ DEC.forEach(d=>{if(d.x>c.x-50&&d.x<c.x+cv.width+50&&d.y>c.y-50&&d.y<c.y+cv.height+50){x.font=d.s+'px serif';x.fillText(d.e,d.x,d.y)}});
+ S.b.forEach((b,i)=>{const dn=done.has(i)||(sl&&S.bx===0);x.save();x.globalAlpha=dn?.4:1;x.shadowColor='#ffd54a';x.shadowBlur=dn?0:22+8*Math.sin(t/200+i);x.font='46px serif';x.fillText(dn?'📭':'🎁',b[0],b[1]+Math.sin(t/300+i)*4);x.restore()});
+ Object.entries(pl).sort((a,b)=>a[1].dy-b[1].dy).forEach(([k,p],idx)=>{
+  const px=p.dx,py=p.dy;
+  if(sl&&!p.o){
+   drawSwordCircle(px,py,swordRadius(p.s),t/380+idx*1.1,p.h||0);
   }
-  const m={sn:+$('sn').checked,ss:+$('ss').checked,bx:+$('sbx').checked,p:G.ph,e:G.e,n:now,W:G.W,H:G.H,bv:G.bv,
-   pl:Object.fromEntries(Object.entries(G.P).map(([k,p])=>[k,[p.x|0,p.y|0,p.s,p.o,p.a,p.h]]))};
-  await upsert('va_state',{id:'st',data:JSON.stringify(m)});
- }finally{wBusy=0}}
+  x.fillStyle='#0005';x.beginPath();x.ellipse(px,py+24,20,7,0,0,7);x.fill();
+  x.globalAlpha=p.o?.45:1;x.fillStyle=col(k);x.beginPath();x.arc(px,py,24,0,7);x.fill();
+  if(k===me){x.strokeStyle='#fff';x.lineWidth=3+Math.sin(t/150);x.stroke()}
+  x.font='30px serif';x.fillText(p.o?'💀':av(k),px,py+2);x.globalAlpha=1;
+  {const lb=[S.sn?(k===me?'You':k):'',S.ss?p.s:''].filter(v=>v!=='').join(' · ');
+   if(lb){x.font='bold 13px Trebuchet MS';const w=x.measureText(lb).width+12;
+   x.fillStyle='#000a';x.fillRect(px-w/2,py-46,w,18);x.fillStyle='#fff';x.fillText(lb,px,py-37)}}
+  if(near.p===k){x.strokeStyle='#ff4d6d';x.setLineDash([6,6]);x.lineWidth=3;x.beginPath();x.arc(px,py,34,0,7);x.stroke();x.setLineDash([])}});
+ parts=parts.filter(p=>--p.l>0);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.25;x.globalAlpha=p.l/40;x.fillStyle=p.c;x.fillRect(p.x,p.y,7,7)});
+ fl=fl.filter(f=>--f.l>0);fl.forEach(f=>{f.y-=1.2;x.globalAlpha=Math.min(1,f.l/25);x.font='bold 36px Trebuchet MS';x.strokeStyle='#000';x.lineWidth=5;x.strokeText(f.t,f.x,f.y);x.fillStyle=f.c;x.fillText(f.t,f.x,f.y)});
+ x.globalAlpha=1;x.setTransform(1,0,0,1,0,0);
+ if(sl){const g=x.createRadialGradient(cv.width/2,cv.height/2,cv.height*.3,cv.width/2,cv.height/2,cv.height*.95);g.addColorStop(0,'rgba(255,0,40,0)');g.addColorStop(1,`rgba(255,0,40,${.35+.15*Math.sin(t/200)})`);x.fillStyle=g;x.fillRect(0,0,cv.width,cv.height)}}
 
-let cleanBusy=0;
-async function cleanup(){
- if(cleanBusy||hLast===null)return;cleanBusy=1;
- await api('va_msgs?to_user=eq.HOST&id=lte.'+hLast,'DELETE');
- await api('va_msgs?to_user=neq.HOST&ts=lt.'+(Date.now()-60000),'DELETE');
- cleanBusy=0}
+function hud(t){
+ if(!S||S.p==='lobby'||!pl[me])return;
+ const r=Math.max(0,S.e-(Date.now()+off)),sec=Math.ceil(r/1000),m=pl[me];
+ $('ph').textContent=S.p==='explore'?'🔍 EXPLORE '+fmt(r):S.p==='slaughter'?'⚔️ SLAUGHTER '+fmt(r):'🏁 GAME OVER';
+ if(sv!==m.s){sv=m.s;const e=$('sc');e.textContent=m.s;e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop')}
+ const cd=S.p==='explore'&&sec<=10&&r>0;$('cd').style.display=cd?'block':'none';
+ if(cd){$('cdn').textContent=sec;if(sec!==lastSec){lastSec=sec;beep(500+(10-sec)*70,.15,'square',.1)}}
+ if(m.o){$('out').textContent=outMsg;$('out').style.display=S.p!=='ended'?'block':'none'}else $('out').style.display='none'}
 
-function tick(){
- tn++;
- pollMsgs();
- if(tn%3===0)pollPlayers();
- if(tn%150===0)cleanup();
- if(!G){if(tn%5===0)writeState();live();return}
- const now=Date.now();
- if(G.ph==='explore'&&now>=G.e){G.ph='slaughter';G.e=now+G.slay;ev('⚔️ SLAUGHTER PHASE BEGINS!')}
- if(G.ph==='slaughter'){const all=Object.values(G.P),act=all.filter(p=>!p.o).length;if(now>=G.e||(all.length>1&&act<=1))fin()}
- if(G.ph==='explore')online().forEach(u=>{if(!G.P[u]){G.P[u]=newPlayer(G);ev('➕ '+u+' joined the game')}});
- ensureBoxes();
- if(tn%3===0&&(G.ph!=='ended'||tn%15===0))writeState();
- live()}
-
-function live(){$('lv').style.display=G?'block':'none';$('go').disabled=!!G;if(!G)return;const on=online();$('lph').textContent=({explore:'🔍 Explore phase',slaughter:'⚔️ Slaughter phase',ended:'🏁 Game over'})[G.ph]+(G.ph==='ended'?'':' — '+fmt(Math.max(0,G.e-Date.now())));
- $('sb').innerHTML=Object.entries(G.P).sort((a,b)=>b[1].s-a[1].s).map(([n,p],i)=>`<tr><td>${i+1}</td><td><span class="dot ${on.has(n)?'on':''}"></span>${esc(n)}</td><td>${p.s}</td><td>${p.o?'💀 out':'⚔️ active'}${on.has(n)?'':' · offline'}</td></tr>`).join('')}
-
-if(sessionStorage.va_host){$('ov').remove();boot()}
+function loop(t){const dt=Math.min(.05,(t-last)/1000);last=t;
+ if(S&&inited&&S.p!=='lobby')step(dt,t);
+ draw(t);hud(t);requestAnimationFrame(loop)}
 </script></body></html>
