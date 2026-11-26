@@ -18,12 +18,13 @@ button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:not-allow
 .go{background:linear-gradient(90deg,#ff4d8d,#ff9f43);font-size:20px;padding:14px 28px;width:100%;margin-top:10px}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#555;margin-right:8px}
 .dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
-.row{display:flex;gap:10px;align-items:center;margin:8px 0}.row label{flex:1;font-size:14px}.row input{width:80px}
+.row{display:flex;gap:10px;align-items:center;margin:8px 0;flex-wrap:wrap}.row label{flex:1;font-size:14px}.row input{width:80px}
 #vb input{min-width:90px}#vb td:first-child input{min-width:160px}
 #ov{position:fixed;inset:0;background:#12122a;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;z-index:9}
 #ov input{width:240px}
 #lv{display:none;margin-top:16px}
 #lph{font-size:24px;font-weight:bold}
+#dbStatus{font-size:12px;color:#b8c0ff}
 </style></head><body>
 <div id="ov"><h1>🎮 Vocab Arena</h1><input id="lu" placeholder="Admin username"><input id="lp" type="password" placeholder="Password" onkeydown="if(event.key=='Enter')adminLogin()"><button onclick="adminLogin()">Log in</button></div>
 
@@ -31,10 +32,15 @@ button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:not-allow
 <div class="g">
  <div class="c"><h2>Students (<span id="onc">0</span> online)</h2>
   <div class="sc"><table><tr><th>Username</th><th>Password</th></tr><tbody id="st"></tbody></table></div></div>
- <div class="c" style="grid-column:span 2"><h2>Questions (<span id="vc">0</span> complete)</h2>
+ <div class="c" style="grid-column:span 2"><h2>Questions (<span id="vc">0</span> complete) <span id="dbStatus">· Cloud sync ready</span></h2>
   <div class="row"><input type="file" id="xl" accept=".xlsx,.xls" style="width:auto"><small>Column A = question, B = <b>correct</b> option, C &amp; D = wrong options. The correct option is shuffled on the player page.</small></div>
   <div class="sc"><table><tr><th>Question</th><th>✔ Correct (2nd)</th><th>Option 3</th><th>Option 4</th><th></th></tr><tbody id="vb"></tbody></table></div>
-  <div class="row"><button onclick="vocab.push(['','','','']);rv();sv()">+ Add row</button><button onclick="if(confirm('Clear all questions?')){vocab=[['','','','']];rv();sv()}">Clear all</button></div></div>
+  <div class="row">
+   <button onclick="vocab.push(['','','','']);rv();sv()">+ Add row</button>
+   <button onclick="syncVocabToDB(true)">☁️ Save / Upload to Database</button>
+   <button onclick="loadVocabFromDB(true)">↻ Reload from Database</button>
+   <button onclick="if(confirm('Clear all questions?')){vocab=[['','','','']];rv();sv()}">Clear all</button>
+  </div></div>
  <div class="c"><h2>Game settings</h2>
   <div class="row"><label>Explore phase (minutes)</label><input id="em" type="number" min="0.5" step="0.5" value="2"></div>
   <div class="row"><label>Slaughter phase (minutes) — "x"</label><input id="sm" type="number" min="0.5" step="0.5" value="3"></div>
@@ -76,11 +82,57 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const cl=(v,a,b)=>Math.min(b,Math.max(a,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const fmt=r=>{const s=Math.ceil(r/1000);return (s/60|0)+':'+String(s%60).padStart(2,'0')};
-let vocab=JSON.parse(localStorage.va_vocab||'[["","","",""]]').map(r=>[0,1,2,3].map(j=>r[j]||'')),students=[],G=null,tn=0;
+const swordRadius=s=>cl(75+Math.max(0,(Number(s)||100)-100)*1.15,75,235);
+
+let vocab=JSON.parse(localStorage.va_vocab||'[["","","",""]]').map(r=>[0,1,2,3].map(j=>r[j]||'')),students=[],G=null,tn=0,syncTimer=null;
 if(!vocab.length)vocab=[['','','','']];
-const sv=()=>localStorage.va_vocab=JSON.stringify(vocab);
 const full=r=>r.every(c=>String(c).trim());
 const AVS0=[...'🐱🐶🦊🐼🐸🐵🦁🐯🐰🐨🐷🐙🦄🐧🐢🦉🐻🐮🐔🦋🐞🐳🐬🦈🐝🦀🐊🦒🦓🐘🦔🦜🦩🐲🐺🦖🦕🐌🦑'];
+
+function setDbStatus(msg){const el=$('dbStatus');if(el)el.textContent='· '+msg}
+
+async function syncVocabToDB(showAlert=false){
+  setDbStatus('Uploading to va_vocab...');
+  const clean=vocab.filter(full).map((r,idx)=>({
+    id:idx+1,
+    question:String(r[0]).trim(),
+    correct_option:String(r[1]).trim(),
+    wrong_option_1:String(r[2]).trim(),
+    wrong_option_2:String(r[3]).trim(),
+    sort_order:idx,
+    updated_at:Date.now()
+  }));
+  const delRes=await api('va_vocab?id=gt.0','DELETE');
+  if(delRes===null){setDbStatus('Upload failed (check va_vocab table)');if(showAlert)alert('Failed to update va_vocab in database.');return}
+  if(clean.length){
+    const insRes=await api('va_vocab','POST',clean,'return=minimal');
+    if(insRes===null){setDbStatus('Upload failed on insert');if(showAlert)alert('Failed to upload questions to va_vocab.');return}
+  }
+  setDbStatus(`Synced ${clean.length} questions to va_vocab`);
+  if(showAlert)alert(`Uploaded ${clean.length} complete questions to va_vocab.`);
+}
+
+async function loadVocabFromDB(showAlert=false){
+  setDbStatus('Loading from va_vocab...');
+  const res=await tcbSelect('va_vocab?select=question,correct_option,wrong_option_1,wrong_option_2,sort_order&order=sort_order.asc,id.asc');
+  if(res.error){setDbStatus('DB load failed (using local)');if(showAlert)alert('Could not load va_vocab: '+res.error.message);return}
+  if(res.data&&res.data.length){
+    vocab=res.data.map(row=>[row.question||'',row.correct_option||'',row.wrong_option_1||'',row.wrong_option_2||'']);
+    localStorage.va_vocab=JSON.stringify(vocab);
+    rv();
+    setDbStatus(`Loaded ${res.data.length} questions from va_vocab`);
+    if(showAlert)alert(`Loaded ${res.data.length} questions from va_vocab.`);
+  }else{
+    setDbStatus('va_vocab is empty');
+    if(showAlert)alert('No questions found in va_vocab yet.');
+  }
+}
+
+const sv=()=>{
+  localStorage.va_vocab=JSON.stringify(vocab);
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>syncVocabToDB(false),700);
+};
 
 function adminLogin(){if($('lu').value==='wangzhrm'&&$('lp').value==='wang123'){sessionStorage.va_host=1;$('ov').remove();boot()}else alert('Wrong credentials')}
 
@@ -94,13 +146,9 @@ $('xl').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileRead
   vocab=vocab.filter(r=>r.some(c=>c)).concat(add);if(!vocab.length)vocab=[['','','','']];rv();sv();e.target.value='';alert(add.length+' questions imported (rows need all 4 columns filled).')};
  r.readAsArrayBuffer(f)};
 
-/* ===== online tracking (heartbeat rows in va_players) =====
-   A player counts as online if its heartbeat value changed within the last 8 seconds of HOST time
-   (so differences between student and teacher computer clocks do not matter). */
 const seen={};
 const ONLINE_MS=8000;
 const online=()=>new Set(Object.keys(seen).filter(k=>seen[k].at&&Date.now()-seen[k].at<ONLINE_MS));
-const pwOf=r=>{const k=Object.keys(r).find(k=>/pass|pwd|pin/i.test(k));return k?r[k]:null};
 async function loadStudents(){
  const a=await tcbSelect('student_accounts?select=username,password&order=username.asc');
  if(a.error)alert('Load student_accounts failed: '+a.error.message);
@@ -116,13 +164,12 @@ async function pollPlayers(){
  const r=await api('va_players?select=username,x,y,t');pBusy=0;
  if(!r)return;const now=Date.now();
  r.forEach(row=>{
-  const s=seen[row.username]||(seen[row.username]={t:row.t,at:0}); /* first sighting: not online until its heartbeat changes */
+  const s=seen[row.username]||(seen[row.username]={t:row.t,at:0});
   if(s.t!==row.t){s.t=row.t;s.at=now}
   const p=G&&G.P[row.username];
   if(p&&G.ph!=='ended'&&row.x!=null&&row.y!=null){p.x=cl(row.x,0,G.W);p.y=cl(row.y,0,G.H)}});
  rs()}
 
-/* ===== messages from players (rows in va_msgs addressed to HOST) ===== */
 const rep=(u,ev,p)=>api('va_msgs','POST',{to_user:u,ev,payload:JSON.stringify(p),ts:Date.now()},'return=minimal');
 const act=()=>G&&(G.ph==='explore'||(G.ph==='slaughter'&&$('sbx').checked));
 let hLast=null,mBusy=0;
@@ -155,14 +202,15 @@ function onMsg(kind,m){const u=m.u;
   rep(u,'res',{u,b:m.b,ok,c:b.c,s:p.s})}
  else if(kind==='chal'){
   if(!G||G.ph!=='slaughter')return;const a=G.P[u],t=G.P[m.t],now=Date.now();
-  if(!a||!t||a.o||t.o||u===m.t||now<a.cd||dist(a,t)>260)return;
-  a.cd=now+1200;const w=a.s>t.s?a:t.s>a.s?t:Math.random()<.5?a:t,l=w===a?t:a;
+  const maxReach=Math.max(260,swordRadius(a&&a.s)+36);
+  if(!a||!t||a.o||t.o||u===m.t||now<a.cd||dist(a,t)>maxReach)return;
+  a.cd=now+1400;const w=a.s>t.s?a:t.s>a.s?t:Math.random()<.5?a:t,l=w===a?t:a;
   w.s+=10;l.s=Math.max(0,l.s-10);l.o=1;
   const wn=w===a?u:m.t,ln=w===a?m.t:u;
   G.duels.push({a:u,t:m.t,w:wn});
   ev(`⚔️ ${wn} defeated ${ln}!`)}}
 
-function boot(){rv();
+function boot(){rv();loadVocabFromDB(false);
  ['sn','ss','sbx'].forEach(id=>{const e=$(id),v=localStorage['va_'+id];if(v!=null)e.checked=v==='1';e.onchange=()=>localStorage['va_'+id]=e.checked?'1':'0'});
  loadStudents();
  pollMsgs();pollPlayers();
@@ -171,17 +219,18 @@ function boot(){rv();
 
 function newPlayer(G){return{x:200+Math.random()*(G.W-400),y:200+Math.random()*(G.H-400),s:100,o:0,cd:0,b:null,a:AVS0[Math.random()*AVS0.length|0],h:Math.random()*360|0}}
 
-function start(){
+async function start(){
  const v=vocab.filter(full).map(r=>r.map(c=>String(c).trim()));
  if(!v.length)return alert('Add at least 1 complete question (question + correct option + 2 wrong options).');
  const names=[...online()];if(!names.length)return alert('No students are logged in yet.');
+ await syncVocabToDB(false);
  const W=2400,H=1600,n=+$('nb').value||12,boxes=[],P={};
  for(let i=0;i<n;i++){const w=v[Math.random()*v.length|0];
   boxes.push({x:150+Math.random()*(W-300),y:150+Math.random()*(H-300),w:w[0],c:w[1],o:shuf([w[1],w[2],w[3]]),d:[]})}
  const AVS=shuf(AVS0),H0=Math.random()*360,HS=shuf(names.map((_,i)=>i));
  names.forEach((u,i)=>P[u]={x:200+Math.random()*(W-400),y:200+Math.random()*(H-400),s:100,o:0,cd:0,b:null,a:AVS[i%AVS.length],h:Math.round((H0+HS[i]*360/names.length)%360)});
- api('va_msgs?id=gt.0','DELETE'); /* clear leftover messages from earlier games */
- G={ph:'explore',e:Date.now()+(+$('em').value||2)*60000,slay:(+$('sm').value||3)*60000,W,H,boxes,P,log:[],duels:[],bv:Date.now(),bk:''};
+ api('va_msgs?id=gt.0','DELETE');
+ G={ph:'explore',e:Date.now()+(+$('em').value\vert{}\vert{}2)*60000,slay:(+$('sm').value||3)*60000,W,H,boxes,P,log:[],duels:[],bv:Date.now(),bk:''};
  ev('🚀 Game started with '+names.length+' players!')}
 
 function ev(t){G.log.unshift(t);$('lg').innerHTML=G.log.slice(0,15).map(l=>`<div>${esc(l)}</div>`).join('')}
@@ -200,7 +249,6 @@ function ensureBoxes(){
 
 function fin(){if(G&&G.ph!=='ended'){G.ph='ended';ev('🏁 Game over!')}}
 
-/* ===== publishing state to players (rows in va_state: 'st' = fast-changing, 'bx' = boxes + duel log) ===== */
 let wBusy=0;
 async function writeState(){
  if(wBusy)return;wBusy=1;
@@ -226,9 +274,9 @@ async function cleanup(){
 
 function tick(){
  tn++;
- pollMsgs();                       /* every 0.2 s */
- if(tn%3===0)pollPlayers();        /* every 0.6 s */
- if(tn%150===0)cleanup();          /* every 30 s */
+ pollMsgs();
+ if(tn%3===0)pollPlayers();
+ if(tn%150===0)cleanup();
  if(!G){if(tn%5===0)writeState();live();return}
  const now=Date.now();
  if(G.ph==='explore'&&now>=G.e){G.ph='slaughter';G.e=now+G.slay;ev('⚔️ SLAUGHTER PHASE BEGINS!')}
