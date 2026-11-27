@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Undercover</title>
 <style>
-:root{--bg:#fff7e6;--ink:#1d2b2a;--teal:#1f6f6b;--sun:#f0b429;--card:#fff;--line:#e6d9bb;--bad:#b3261e;--clue-bg:#e6f6f3;--clue-bd:#68b0a8;--vote-bg:#fff0d6;--vote-bd:#e5a94c}
+:root{--bg:#fff7e6;--ink:#1d2b2a;--teal:#1f6f6b;--sun:#f0b429;--card:#fff;--line:#e6d9bb;--bad:#b3261e;--clue-bg:#e6f6f3;--clue-bd:#68b0a8;--vote-bg:#fff0d6;--vote-bd:#e5a94c;--draft-bg:#fffdf5;--draft-bd:#1f6f6b}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:20px/1.45 "Trebuchet MS","Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;overflow-anchor:none}
 header{background:var(--teal);color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
@@ -21,16 +21,13 @@ button:disabled{opacity:.4;cursor:not-allowed}
 :focus-visible{outline:4px solid var(--sun);outline-offset:2px}
 .card{background:var(--card);border:3px dashed var(--teal);border-radius:20px;min-height:200px;display:flex;align-items:center;justify-content:center;font-size:40px;text-align:center;margin:12px 0;padding:16px;cursor:pointer}
 .card.up{border-style:solid;background:#e8f4f2}
-textarea{width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;min-height:70px;user-select:text;-webkit-user-select:text}
-#mic{background:var(--sun);color:var(--ink);width:100%;padding:22px;font-size:24px;margin-bottom:6px}
-#mic.on{background:var(--bad);color:#fff}
-.st{min-height:28px;color:var(--teal);margin:4px 0}
 .err{color:var(--bad);font-weight:bold}
 .grid{display:flex;flex-wrap:wrap;gap:6px}
 
 /* Fixed-height status & action slot so board content never shifts vertically */
-.status-slot{min-height:42px;display:flex;align-items:center;margin:2px 0 4px}
-.status-slot h2{margin:0;font-size:28px;line-height:1.2}
+.status-slot{min-height:42px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
+.status-slot h2{margin:0;font-size:26px;line-height:1.2}
+.status-hint{font-size:14px;color:var(--teal);min-height:20px}
 .action-slot{min-height:54px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
 
 /* Lobby human avatar picker */
@@ -46,28 +43,34 @@ textarea{width:100%;font:inherit;padding:10px;border:2px solid var(--line);borde
 .board-wrap{overflow-x:auto;margin:8px 0 16px;overflow-anchor:none}
 .board-grid{display:grid;gap:8px;min-width:640px;align-items:start;overflow-anchor:none}
 .sticky-top{position:sticky;top:0;z-index:20;background:var(--bg);padding:8px 4px 10px;border-bottom:2px solid var(--line)}
-.char-cell{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 4px;border-radius:14px;min-height:152px;justify-content:flex-start;transition:background .15s,box-shadow .15s}
+.char-cell{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 4px;border-radius:14px;min-height:164px;justify-content:flex-start;transition:background .15s,box-shadow .15s}
 .char-cell.active{background:#fff1bd;box-shadow:0 0 0 2.5px var(--teal)}
 .char-cell.out{opacity:.45;filter:grayscale(.75)}
 .char-badge{font-size:11px;font-weight:bold;background:var(--teal);color:#fff;border-radius:999px;padding:1px 8px;margin-bottom:4px}
-.char-frame{width:76px;height:86px;border-radius:14px;overflow:hidden;border:2px solid var(--ink);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.char-portrait-box{position:relative;width:76px;height:86px;flex-shrink:0}
+.char-frame{width:76px;height:86px;border-radius:14px;overflow:hidden;border:2px solid var(--ink);background:#fff;display:flex;align-items:center;justify-content:center}
 .char-img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
-.char-name{font-size:15px;font-weight:bold;margin-top:4px;line-height:1.2;min-height:18px}
+.char-mic-btn{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:74px;padding:3px 4px;margin:0;border-radius:999px;font-size:10px;font-weight:bold;line-height:1.15;background:var(--sun);color:var(--ink);border:1.5px solid var(--ink);box-shadow:0 2px 5px rgba(0,0,0,.18);white-space:nowrap}
+.char-mic-btn.on{background:var(--bad);color:#fff;border-color:#fff}
+.char-name{font-size:15px;font-weight:bold;margin-top:10px;line-height:1.2;min-height:18px}
 .char-meta{font-size:11px;color:#526664;line-height:1.2;min-height:14px}
 
-.row-label{font-size:12px;font-weight:bold;color:#415654;padding:6px 2px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px;min-height:62px}
+.row-label{font-size:12px;font-weight:bold;color:#415654;padding:6px 2px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px;min-height:76px}
 .legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .dot-clue{background:var(--clue-bd)}
 .dot-vote{background:var(--vote-bd)}
 
-.slot-cell{padding:4px 2px;border-top:1px dashed var(--line);min-height:62px}
+.slot-cell{padding:4px 2px;border-top:1px dashed var(--line);min-height:76px}
 .slot-cell.out{opacity:.45}
 .bubble{border-radius:12px;padding:7px 9px;font-size:13px;line-height:1.34;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .bubble.clue{background:var(--clue-bg);border:1.5px solid var(--clue-bd);color:#153633}
 .bubble.vote{background:var(--vote-bg);border:1.5px solid var(--vote-bd);color:#472c08}
-.bubble.empty{background:transparent;border:1px dashed #d8cab0;color:#9b9486;font-size:12px;text-align:center;padding:8px 4px;box-shadow:none;min-height:46px;display:flex;align-items:center;justify-content:center}
-.bubble-tag{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.03em;opacity:.72;margin-bottom:2px}
+.bubble.draft{background:var(--draft-bg);border:2px dashed var(--draft-bd);color:var(--ink)}
+.bubble.empty{background:transparent;border:1px dashed #d8cab0;color:#9b9486;font-size:12px;text-align:center;padding:8px 4px;box-shadow:none;min-height:58px;display:flex;align-items:center;justify-content:center}
+.bubble-tag{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.03em;opacity:.72;margin-bottom:3px}
 .bubble-body{display:inline}
+.draft-input{width:100%;font-family:inherit;font-size:12.5px;line-height:1.3;padding:5px 7px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);resize:vertical;min-height:42px;user-select:text;-webkit-user-select:text}
+.draft-confirm{padding:4px 10px;font-size:11.5px;font-weight:bold;border-radius:8px;margin:5px 0 0 0;background:var(--teal);color:#fff}
 .amp-btn{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:22px;height:22px;padding:0;margin:0 0 0 6px;border-radius:999px;font-size:12px;line-height:1;background:rgba(31,111,107,.14);color:var(--ink);border:1px solid rgba(31,111,107,.35)}
 .bubble.vote .amp-btn{background:rgba(180,115,20,.16);border-color:rgba(180,115,20,.4)}
 .amp-btn:hover{background:var(--sun);color:var(--ink)}
@@ -134,9 +137,10 @@ function fallbackSvgDataUri(gender, label) {
 
 const $ = id => document.getElementById(id);
 let cfg, pairs = [], used = new Set(), S, scores = {};
+let activeDraft = null; // { playerName, round, kind, text, recording }
 try { scores = JSON.parse(localStorage.getItem('uc_scores') || '{}'); } catch (e) {}
 
-const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 async function post(path, body) {
   const r = await fetch(CFG.API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -153,11 +157,17 @@ function addScore(name, n) {
   drawScores();
 }
 
-function portraitHtml(p) {
+function portraitHtml(p, isSpeakerMic) {
   const fb = fallbackSvgDataUri(p.gender, p.label);
-  return '<div class="char-frame">' +
+  const recOn = isSpeakerMic && activeDraft && activeDraft.recording;
+  return '<div class="char-portrait-box">' +
+    '<div class="char-frame">' +
     '<img class="char-img" src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="eager" ' +
     'onerror="this.onerror=null;this.src=\'' + fb + '\'">' +
+    '</div>' +
+    (isSpeakerMic
+      ? '<button type="button" id="portraitMic" class="char-mic-btn' + (recOn ? ' on' : '') + '">' + (recOn ? 'Release' : 'Hold speak') + '</button>'
+      : '') +
     '</div>';
 }
 
@@ -208,8 +218,14 @@ function buildRows() {
 function playerBoard(activeName, phaseLabel) {
   if (!S || !S.players || !S.players.length) return '';
   const n = S.players.length;
-  const colsStyle = 'grid-template-columns: 118px repeat(' + n + ', minmax(150px, 1fr));';
+  const colsStyle = 'grid-template-columns: 118px repeat(' + n + ', minmax(156px, 1fr));';
   const rows = buildRows();
+  const draft = activeDraft;
+  const draftRowType = draft && draft.kind === 'defend' ? 'defend' : 'clue';
+  const draftRowLabel = draft
+    ? (draft.kind === 'defend' ? ('Round ' + draft.round + ' Defence') : ('Round ' + draft.round + ' Clues'))
+    : '';
+  let draftPlacedInExistingRow = false;
 
   let html = '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;font-size:14px">' +
     '<span>' +
@@ -221,38 +237,66 @@ function playerBoard(activeName, phaseLabel) {
 
   html += '<div class="board-wrap"><div class="board-grid" style="' + colsStyle + '">';
 
-  html += '<div class="sticky-top" style="font-size:12px;font-weight:bold;color:#4f6361;display:flex;align-items:flex-end;padding-bottom:12px;min-height:152px">Players</div>';
+  html += '<div class="sticky-top" style="font-size:12px;font-weight:bold;color:#4f6361;display:flex;align-items:flex-end;padding-bottom:12px;min-height:164px">Players</div>';
   S.players.forEach((p, idx) => {
     const isActive = activeName && p.name === activeName;
+    const showMic = Boolean(draft && draft.playerName === p.name);
     html += '<div class="sticky-top char-cell' + (isActive ? ' active' : '') + (!p.alive ? ' out' : '') + '">' +
       '<div class="char-badge">#' + (idx + 1) + '</div>' +
-      portraitHtml(p) +
+      portraitHtml(p, showMic) +
       '<div class="char-name">' + esc(p.name) + '</div>' +
       '<div class="char-meta">' + (p.ai ? 'AI · ' + esc(p.gender) : 'Human') + (!p.alive ? ' · Out' : '') + '</div>' +
       '</div>';
   });
 
+  function renderBubbleOrDraft(p, existingCell, rowKind, rowRound) {
+    if (existingCell) {
+      return '<div class="slot-cell' + (!p.alive ? ' out' : '') + '">' +
+        '<div class="bubble ' + (rowKind === 'vote' ? 'vote' : 'clue') + '">' +
+        '<div class="bubble-tag">' + (rowKind === 'vote' ? 'Vote' : 'Clue') + '</div>' +
+        '<span class="bubble-body">' + esc(existingCell.text) + '</span>' +
+        ampHtml(existingCell.histIdx) +
+        '</div></div>';
+    }
+    if (draft && draft.playerName === p.name && draftRowType === rowKind && draft.round === rowRound) {
+      draftPlacedInExistingRow = true;
+      return '<div class="slot-cell">' +
+        '<div class="bubble draft">' +
+        '<div class="bubble-tag">' + (rowKind === 'defend' ? 'Defence Draft' : 'Clue Draft') + '</div>' +
+        '<textarea id="draftBox" class="draft-input" placeholder="Hold portrait button or type...">' + esc(draft.text) + '</textarea>' +
+        '<button type="button" id="draftConfirm" class="draft-confirm">Confirm</button>' +
+        '</div></div>';
+    }
+    return '<div class="slot-cell' + (!p.alive ? ' out' : '') + '"><div class="bubble empty">—</div></div>';
+  }
+
   if (!rows.length) {
-    html += '<div class="row-label">Round 1 Clues</div>';
-    S.players.forEach(p => {
-      html += '<div class="slot-cell' + (!p.alive ? ' out' : '') + '"><div class="bubble empty">' + (p.alive ? 'Not spoken yet' : 'Out') + '</div></div>';
-    });
+    if (draft) {
+      html += '<div class="row-label"><span class="legend-dot dot-clue"></span><span>' + esc(draftRowLabel) + '</span></div>';
+      for (const p of S.players) {
+        html += renderBubbleOrDraft(p, null, draftRowType, draft.round);
+      }
+    } else {
+      html += '<div class="row-label">Round 1 Clues</div>';
+      S.players.forEach(p => {
+        html += '<div class="slot-cell' + (!p.alive ? ' out' : '') + '"><div class="bubble empty">' + (p.alive ? 'Not spoken yet' : 'Out') + '</div></div>';
+      });
+    }
   } else {
     for (const r of rows) {
+      const rKind = r.type === 'vote' ? 'vote' : (r.id.startsWith('defend-') ? 'defend' : 'clue');
+      const rRound = r.round || 1;
       const dotClass = r.type === 'vote' ? 'dot-vote' : 'dot-clue';
       html += '<div class="row-label"><span class="legend-dot ' + dotClass + '"></span><span>' + esc(r.label) + '</span></div>';
       for (const p of S.players) {
-        const cell = r.cells[p.name];
-        if (cell) {
-          html += '<div class="slot-cell' + (!p.alive ? ' out' : '') + '">' +
-            '<div class="bubble ' + r.type + '">' +
-            '<div class="bubble-tag">' + (r.type === 'vote' ? 'Vote' : 'Clue') + '</div>' +
-            '<span class="bubble-body">' + esc(cell.text) + '</span>' +
-            ampHtml(cell.histIdx) +
-            '</div></div>';
-        } else {
-          html += '<div class="slot-cell' + (!p.alive ? ' out' : '') + '"><div class="bubble empty">—</div></div>';
-        }
+        html += renderBubbleOrDraft(p, r.cells[p.name] || null, rKind, rRound);
+      }
+    }
+    if (draft && !draftPlacedInExistingRow) {
+      const dotClass = draftRowType === 'vote' ? 'dot-vote' : 'dot-clue';
+      html += '<div class="row-label"><span class="legend-dot ' + dotClass + '"></span><span>' + esc(draftRowLabel) + '</span></div>';
+      for (const p of S.players) {
+        html += renderBubbleOrDraft(p, null, draftRowType, draft.round);
       }
     }
   }
@@ -273,6 +317,9 @@ function bindAmps() {
 }
 
 function view(h) {
+  const prevDraft = $('draftBox');
+  if (activeDraft && prevDraft) activeDraft.text = prevDraft.value;
+
   const prevBoard = $('main').querySelector('.board-wrap');
   const prevScrollX = prevBoard ? prevBoard.scrollLeft : 0;
   const prevWinY = window.scrollY;
@@ -297,8 +344,8 @@ function wait(h) {
   });
 }
 
-function boardScreen(titleText, actionHtml, activeName, phaseLabel) {
-  return '<div class="status-slot"><h2>' + esc(titleText) + '</h2></div>' +
+function boardScreen(titleText, actionHtml, activeName, phaseLabel, hintText) {
+  return '<div class="status-slot"><h2>' + esc(titleText) + '</h2><span class="status-hint" id="liveHint">' + esc(hintText || '') + '</span></div>' +
     '<div class="action-slot">' + (actionHtml || '') + '</div>' +
     playerBoard(activeName, phaseLabel);
 }
@@ -414,59 +461,97 @@ async function wavB64(blob) {
   return btoa(b);
 }
 
-// ---------- human speech: hold to talk, check text, confirm ----------
-function humanSpeak(title, phaseLabel, activeName) {
+// ---------- human speech: button on character portrait, draft text in player's bubble ----------
+function humanSpeak(title, phaseLabel, activeName, round, kind) {
   stopAudio();
+  activeDraft = { playerName: activeName, round, kind, text: '', recording: false };
+
   return new Promise(res => {
-    view('<div class="status-slot"><h2>' + esc(title) + '</h2></div>' +
-      '<button id="mic">Hold to speak English</button><div class="st" id="st">Press and hold the yellow button, speak, then let go.</div>' +
-      '<textarea id="tx" placeholder="Your words appear here. You can also type."></textarea>' +
-      '<div class="action-slot"><button id="ok">Confirm</button></div>' +
-      playerBoard(activeName, phaseLabel));
-    const st = t => $('st').textContent = t, mic = $('mic');
     let holding = false;
 
-    mic.onpointerdown = async e => {
-      e.preventDefault();
-      holding = true;
-      try {
-        mic.setPointerCapture(e.pointerId);
-        await startRec();
-        if (!holding) { await stopRec(); return; }
-        mic.classList.add('on');
-        st('Listening... let go when you finish.');
-      } catch (err) {
-        holding = false;
-        st('Microphone problem: ' + err.message + '. You can type instead.');
-      }
-    };
+    function setHint(msg) {
+      const el = $('liveHint');
+      if (el) el.textContent = msg;
+    }
 
-    const finishHold = async () => {
-      if (!holding) return;
-      holding = false;
-      mic.classList.remove('on');
-      if (!rec || rec.state !== 'recording') return;
-      st('Recognising...');
-      try {
-        const blob = await stopRec();
-        if (!blob.size) { st('No audio captured. Hold a bit longer or type.'); return; }
-        const r = await post('/asr', { audio_base64: await wavB64(blob) });
-        const heard = (r.text || '').trim();
-        if (heard) {
-          $('tx').value = heard;
-          st('Check the words. Fix them if needed, then press Confirm.');
-        } else {
-          console.log('ASR raw reply', r);
-          st('Nothing recognised. Try again or type.');
-        }
-      } catch (err) {
-        st('Could not recognise (' + err.message + '). You can type instead.');
-      }
-    };
+    function wireControls() {
+      const mic = $('portraitMic');
+      const box = $('draftBox');
+      const ok = $('draftConfirm');
 
-    mic.onpointerup = finishHold;
-    mic.onpointercancel = finishHold;
-    $('ok').onclick = () => { const t = $('tx').value.trim(); if (t) res(t); else st('Say or type something first.'); };
+      if (box) {
+        box.oninput = () => {
+          if (activeDraft) activeDraft.text = box.value;
+        };
+      }
+
+      if (mic) {
+        mic.onpointerdown = async e => {
+          e.preventDefault();
+          e.stopPropagation();
+          holding = true;
+          try {
+            mic.setPointerCapture(e.pointerId);
+            await startRec();
+            if (!holding) { await stopRec(); return; }
+            if (activeDraft) activeDraft.recording = true;
+            mic.classList.add('on');
+            mic.textContent = 'Release';
+            setHint('Listening... release when done.');
+          } catch (err) {
+            holding = false;
+            if (activeDraft) activeDraft.recording = false;
+            setHint('Mic error: ' + err.message + '. Type in bubble.');
+          }
+        };
+
+        const finishHold = async e => {
+          if (e) e.stopPropagation();
+          if (!holding) return;
+          holding = false;
+          if (activeDraft) activeDraft.recording = false;
+          mic.classList.remove('on');
+          mic.textContent = 'Hold speak';
+          if (!rec || rec.state !== 'recording') return;
+          setHint('Recognising...');
+          try {
+            const blob = await stopRec();
+            if (!blob.size) { setHint('No audio captured. Hold longer or type.'); return; }
+            const r = await post('/asr', { audio_base64: await wavB64(blob) });
+            const heard = (r.text || '').trim();
+            if (heard) {
+              if (activeDraft) activeDraft.text = heard;
+              const curBox = $('draftBox');
+              if (curBox) curBox.value = heard;
+              setHint('Check text in bubble, then Confirm.');
+            } else {
+              setHint('Nothing heard. Try again or type.');
+            }
+          } catch (err) {
+            setHint('ASR failed (' + err.message + '). Type in bubble.');
+          }
+        };
+
+        mic.onpointerup = finishHold;
+        mic.onpointercancel = finishHold;
+      }
+
+      if (ok) {
+        ok.onclick = () => {
+          const curBox = $('draftBox');
+          const t = (curBox ? curBox.value : (activeDraft ? activeDraft.text : '')).trim();
+          if (!t) {
+            setHint('Speak or type a clue in your bubble first.');
+            return;
+          }
+          activeDraft = null;
+          res(t);
+        };
+      }
+    }
+
+    view(boardScreen(title, '', activeName, phaseLabel, 'Hold "Hold speak" on ' + activeName + ' or type in bubble.'));
+    wireControls();
   });
 }
 
@@ -487,6 +572,7 @@ async function loadAll() {
 
 function lobby() {
   stopAudio();
+  activeDraft = null;
   return new Promise(async resolve => {
     await loadAll();
     const hCount = Math.max(0, +cfg.human_count || 0);
@@ -674,7 +760,7 @@ async function turn(p, round, kind) {
     speak(e);
     await waitPromise;
   } else {
-    const text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name, phase, p.name);
+    const text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name, phase, p.name, round, kind);
     const e = { round, name: p.name, text, ai: false, voice: p.voice, gender: p.gender, kind };
     S.hist.push(e);
   }
