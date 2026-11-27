@@ -12,12 +12,13 @@ header{background:var(--teal);color:#fff;padding:10px 18px;display:flex;justify-
 header h1{margin:0;font-size:24px}
 #score{font-size:16px;display:flex;gap:12px;flex-wrap:wrap}
 #score span{background:rgba(255,255,255,.18);padding:2px 10px;border-radius:12px}
-main{max-width:1120px;margin:0 auto;padding:14px 16px 32px}
+main{max-width:1160px;margin:0 auto;padding:14px 16px 32px}
 h2{margin:6px 0 10px}
 button{font:inherit;padding:13px 20px;border:0;border-radius:12px;background:var(--teal);color:#fff;margin:6px 6px 6px 0;cursor:pointer;touch-action:manipulation}
 button.alt{background:#fff;color:var(--teal);border:2px solid var(--teal)}
 button.sun{background:var(--sun);color:var(--ink)}
 button.small{padding:4px 10px;font-size:14px;margin:4px 0 0 0}
+button:disabled{opacity:.4;cursor:not-allowed}
 :focus-visible{outline:4px solid var(--sun);outline-offset:2px}
 .card{background:var(--card);border:3px dashed var(--teal);border-radius:20px;min-height:200px;display:flex;align-items:center;justify-content:center;font-size:40px;text-align:center;margin:12px 0;padding:16px;cursor:pointer}
 .card.up{border-style:solid;background:#e8f4f2}
@@ -28,16 +29,26 @@ textarea{width:100%;font:inherit;padding:10px;border:2px solid var(--line);borde
 .err{color:var(--bad);font-weight:bold}
 .grid{display:flex;flex-wrap:wrap}
 
+/* Lobby human avatar picker */
+.human-setup{background:#fffdf7;border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin:12px 0}
+.human-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.human-top label{font-weight:bold}
+.picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px}
+.pick-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;margin:0;border-radius:10px;border:2px solid var(--line);background:#fff;color:var(--ink);font-size:11px;font-weight:bold}
+.pick-btn.selected{border-color:var(--teal);background:#dff3ef;box-shadow:0 0 0 2px var(--teal)}
+.pick-btn img{width:46px;height:46px;object-fit:cover;object-position:top center;border-radius:8px;display:block}
+
 /* Open board: sticky character headers + aligned round/statement rows */
 .board-wrap{overflow-x:auto;margin:10px 0 16px}
 .board-grid{display:grid;gap:8px;min-width:640px;align-items:start}
 .sticky-top{position:sticky;top:0;z-index:20;background:var(--bg);padding:8px 4px 10px;border-bottom:2px solid var(--line)}
 .char-cell{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 4px;border-radius:14px;transition:transform .15s,background .15s}
 .char-cell.active{background:#fff1bd;box-shadow:0 0 0 2.5px var(--teal);transform:translateY(-2px)}
-.char-cell.out{opacity:.45;filter:grayscale(.7)}
-.char-badge{font-size:11px;font-weight:bold;background:var(--teal);color:#fff;border-radius:999px;padding:1px 8px;margin-bottom:3px}
-.char-svg{width:76px;height:96px;display:block;overflow:visible}
-.char-name{font-size:15px;font-weight:bold;margin-top:2px;line-height:1.2}
+.char-cell.out{opacity:.45;filter:grayscale(.75)}
+.char-badge{font-size:11px;font-weight:bold;background:var(--teal);color:#fff;border-radius:999px;padding:1px 8px;margin-bottom:4px}
+.char-frame{width:76px;height:86px;border-radius:14px;overflow:hidden;border:2px solid var(--ink);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.char-img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.char-name{font-size:15px;font-weight:bold;margin-top:4px;line-height:1.2}
 .char-meta{font-size:11px;color:#526664;line-height:1.2}
 
 .row-label{font-size:12px;font-weight:bold;color:#415654;padding:6px 2px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px}
@@ -64,33 +75,53 @@ const CFG = {
   API: "https://civil-prawn-d0gflguvzee35fad8-1395372774.ap-shanghai.app.tcloudbase.com/undercover-api"
 };
 
-// AI cast with explicit gender, matching Qwen-Audio-3.1 TTS voice, and distinct stylized looks
-const AI_CAST = [
-  { name: "Mia",  gender: "female", voice: "longanhuan_v3.1",   shirt: "#f28482", hair: "#4a2c18", style: "ponytail", blush: "#ffb5a7" },
-  { name: "Leo",  gender: "male",   voice: "xunanchuan_v3.1",   shirt: "#4ea8de", hair: "#232931", style: "fluffy",   blush: "#fbc4ab" },
-  { name: "Zoe",  gender: "female", voice: "longanlingxin_v3.1",shirt: "#b5838d", hair: "#2f1e3a", style: "bob",      blush: "#ffc2d1" },
-  { name: "Max",  gender: "male",   voice: "longanyang_v3.1",   shirt: "#52b788", hair: "#5c3a21", style: "swept",    blush: "#fbc4ab" },
-  { name: "Amy",  gender: "female", voice: "longanfengyue_v3.1",shirt: "#f4a261", hair: "#3d2219", style: "pigtails", blush: "#ffb5a7" },
-  { name: "Ben",  gender: "male",   voice: "longhan_v3.1",      shirt: "#748cab", hair: "#2b2623", style: "curls",    blush: "#fbc4ab" },
-  { name: "Eva",  gender: "female", voice: "longanhuan_v3.1",   shirt: "#e07a5f", hair: "#4b2e1e", style: "bob",      blush: "#ffc2d1" }
-];
-const FEMALE_VOICES = ["longanhuan_v3.1", "longanlingxin_v3.1", "longanfengyue_v3.1"];
 const MALE_VOICES = ["xunanchuan_v3.1", "longanyang_v3.1", "longhan_v3.1"];
+const FEMALE_VOICES = ["longanhuan_v3.1", "longanlingxin_v3.1", "longanfengyue_v3.1"];
+
+const AVATAR_POOL = [
+  { id: "m1", label: "M1", gender: "male",   defaultName: "Leo",  voice: "xunanchuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m1.png" },
+  { id: "m2", label: "M2", gender: "male",   defaultName: "Max",  voice: "longanyang_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m2.png" },
+  { id: "m3", label: "M3", gender: "male",   defaultName: "Ben",  voice: "longhan_v3.1",      img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m3.png" },
+  { id: "m4", label: "M4", gender: "male",   defaultName: "Ryan", voice: "xunanchuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m4.png" },
+  { id: "m5", label: "M5", gender: "male",   defaultName: "Liam", voice: "longanyang_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m5.png" },
+  { id: "m6", label: "M6", gender: "male",   defaultName: "Noah", voice: "longhan_v3.1",      img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m6.png" },
+  { id: "m7", label: "M7", gender: "male",   defaultName: "Jack", voice: "xunanchuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m7.png" },
+  { id: "m8", label: "M8", gender: "male",   defaultName: "Sam",  voice: "longanyang_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m8.png" },
+  { id: "f1", label: "F1", gender: "female", defaultName: "Mia",  voice: "longanhuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f1.png" },
+  { id: "f2", label: "F2", gender: "female", defaultName: "Zoe",  voice: "longanlingxin_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f2.png" },
+  { id: "f3", label: "F3", gender: "female", defaultName: "Amy",  voice: "longanfengyue_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f3.png" },
+  { id: "f4", label: "F4", gender: "female", defaultName: "Eva",  voice: "longanhuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f4.png" },
+  { id: "f5", label: "F5", gender: "female", defaultName: "Lily", voice: "longanlingxin_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f5.png" },
+  { id: "f6", label: "F6", gender: "female", defaultName: "Lucy", voice: "longanfengyue_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f6.png" },
+  { id: "f7", label: "F7", gender: "female", defaultName: "Anna", voice: "longanhuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f7.png" },
+  { id: "f8", label: "F8", gender: "female", defaultName: "Ella", voice: "longanlingxin_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f8.png" }
+];
 
 function guessGender(name) {
   const n = (name || "").trim().toLowerCase();
-  if (["mia","zoe","amy","eva","anna","emma","lucy","lily","sophia","chloe","grace","ella","olivia","ruby","claire","alice","rose","nina","tina","wendy"].includes(n)) return "female";
-  if (["leo","max","ben","ryan","liam","noah","jack","oscar","sam","tom","eric","alex","daniel","lucas","henry","ethan","paul","mark","david","peter"].includes(n)) return "male";
+  if (["mia","zoe","amy","eva","lily","lucy","anna","ella","emma","sophia","chloe","grace","olivia","ruby","claire","alice","rose","nina","tina","wendy"].includes(n)) return "female";
+  if (["leo","max","ben","ryan","liam","noah","jack","sam","oscar","tom","eric","alex","daniel","lucas","henry","ethan","paul","mark","david","peter"].includes(n)) return "male";
   if (/[aei]$/.test(n) && !["mike","luke","kyle","nate","blake","charlie","jamie"].includes(n)) return "female";
   return "male";
 }
-function voiceForName(name, preferred) {
-  if (preferred) return preferred;
-  const g = guessGender(name);
+function voiceForAvatar(av, name) {
+  if (av && av.voice) return av.voice;
+  const g = av ? av.gender : guessGender(name);
   const pool = g === "female" ? FEMALE_VOICES : MALE_VOICES;
   let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < (name || "").length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   return pool[h % pool.length];
+}
+function fallbackSvgDataUri(gender, label) {
+  const bg = gender === "female" ? "#fde2e4" : "#dbeafe";
+  const fg = gender === "female" ? "#9d174d" : "#1e3a8a";
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="108" viewBox="0 0 96 108">' +
+    '<rect width="96" height="108" rx="14" fill="' + bg + '"/>' +
+    '<circle cx="48" cy="40" r="18" fill="' + fg + '" opacity=".25"/>' +
+    '<path d="M18 98 C20 72, 76 72, 78 98 Z" fill="' + fg + '" opacity=".3"/>' +
+    '<text x="48" y="46" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="' + fg + '">' + (label || "?") + '</text>' +
+    '</svg>';
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
 }
 
 const $ = id => document.getElementById(id);
@@ -114,63 +145,12 @@ function addScore(name, n) {
   drawScores();
 }
 
-// ---------- expressive comic character portraits ----------
-function avatarSvg(p, isActive) {
-  const shirt = p.shirt || (p.ai ? '#4ea8de' : '#3d5a80');
-  const hair = p.hair || '#2f241d';
-  const skin = '#ffdfb8';
-  const blush = p.blush || '#ffb5a7';
-  const style = p.style || (p.ai ? 'fluffy' : 'cap');
-
-  const backHair = style === 'pigtails'
-    ? '<circle cx="17" cy="40" r="9" fill="' + hair + '"/><circle cx="67" cy="40" r="9" fill="' + hair + '"/>'
-    : style === 'ponytail'
-    ? '<path d="M56 22 C71 20, 74 38, 63 48 C64 36, 59 29, 54 27 Z" fill="' + hair + '"/>'
-    : style === 'bob'
-    ? '<rect x="19" y="24" width="46" height="28" rx="14" fill="' + hair + '"/>'
-    : '';
-
-  const frontHair = style === 'ponytail'
-    ? '<path d="M23 32 C23 14, 61 14, 61 32 C55 24, 30 24, 23 32 Z" fill="' + hair + '"/>'
-    : style === 'pigtails'
-    ? '<path d="M23 32 C23 14, 61 14, 61 32 C53 23, 31 23, 23 32 Z" fill="' + hair + '"/>'
-    : style === 'bob'
-    ? '<path d="M22 33 C22 14, 62 14, 62 33 C54 24, 30 24, 22 33 Z" fill="' + hair + '"/>'
-    : style === 'fluffy'
-    ? '<path d="M22 31 C20 22, 27 14, 35 16 C39 11, 47 11, 51 16 C59 14, 65 22, 62 31 C55 24, 29 24, 22 31 Z" fill="' + hair + '"/>'
-    : style === 'swept'
-    ? '<path d="M22 31 C23 16, 44 12, 62 21 C54 22, 42 22, 22 31 Z" fill="' + hair + '"/>'
-    : style === 'curls'
-    ? '<circle cx="26" cy="23" r="7.5" fill="' + hair + '"/><circle cx="36" cy="17" r="8" fill="' + hair + '"/><circle cx="48" cy="17" r="8" fill="' + hair + '"/><circle cx="58" cy="23" r="7.5" fill="' + hair + '"/>'
-    : '<path d="M22 29 C24 14, 60 14, 62 29 Z" fill="#e76f51"/><path d="M20 28 L66 28 C67 28, 67 32, 65 32 L20 32 Z" fill="#c8553d"/>';
-
-  const eyes = isActive
-    ? '<circle cx="35" cy="38" r="3.4" fill="#1d2b2a"/><circle cx="36.2" cy="36.8" r="1.1" fill="#fff"/>' +
-      '<circle cx="49" cy="38" r="3.4" fill="#1d2b2a"/><circle cx="50.2" cy="36.8" r="1.1" fill="#fff"/>'
-    : '<circle cx="35" cy="38" r="2.8" fill="#1d2b2a"/><circle cx="35.9" cy="37" r=".9" fill="#fff"/>' +
-      '<circle cx="49" cy="38" r="2.8" fill="#1d2b2a"/><circle cx="49.9" cy="37" r=".9" fill="#fff"/>';
-
-  const mouth = isActive
-    ? '<path d="M37 46 Q42 53 47 46 Z" fill="#d9534f"/>'
-    : '<path d="M37 46 Q42 50 47 46" stroke="#4a2c24" stroke-width="2.2" fill="none" stroke-linecap="round"/>';
-
-  return '<svg class="char-svg" viewBox="0 0 84 100" aria-hidden="true">' +
-    backHair +
-    '<path d="M16 96 C17 71, 67 71, 68 96 Z" fill="' + shirt + '" stroke="#1d2b2a" stroke-width="2.2"/>' +
-    '<polygon points="36,72 42,83 48,72" fill="#fff" opacity=".85"/>' +
-    '<rect x="37" y="54" width="10" height="14" rx="4.5" fill="' + skin + '"/>' +
-    '<circle cx="23" cy="40" r="4.5" fill="' + skin + '"/>' +
-    '<circle cx="61" cy="40" r="4.5" fill="' + skin + '"/>' +
-    '<rect x="25" y="20" width="34" height="36" rx="16" fill="' + skin + '" stroke="#1d2b2a" stroke-width="2.2"/>' +
-    '<ellipse cx="30" cy="43" rx="4" ry="2.3" fill="' + blush + '" opacity=".7"/>' +
-    '<ellipse cx="54" cy="43" rx="4" ry="2.3" fill="' + blush + '" opacity=".7"/>' +
-    '<path d="M31 33 Q35 31 38 33" stroke="' + hair + '" stroke-width="1.8" fill="none" stroke-linecap="round"/>' +
-    '<path d="M46 33 Q49 31 53 33" stroke="' + hair + '" stroke-width="1.8" fill="none" stroke-linecap="round"/>' +
-    eyes +
-    '<path d="M42 39 L41 42 L43 42" stroke="#b57c5a" stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
-    mouth +
-    frontHair +
-    '</svg>';
+function portraitHtml(p) {
+  const fb = fallbackSvgDataUri(p.gender, p.label);
+  return '<div class="char-frame">' +
+    '<img class="char-img" src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" ' +
+    'onerror="this.onerror=null;this.src=\'' + fb + '\'">' +
+    '</div>';
 }
 
 // Group history chronologically into rows (each round's clues, each vote/defence step)
@@ -235,7 +215,7 @@ function playerBoard(activeName, phaseLabel) {
     const isActive = activeName && p.name === activeName;
     html += '<div class="sticky-top char-cell' + (isActive ? ' active' : '') + (!p.alive ? ' out' : '') + '">' +
       '<div class="char-badge">#' + (idx + 1) + '</div>' +
-      avatarSvg(p, isActive) +
+      portraitHtml(p) +
       '<div class="char-name">' + esc(p.name) + '</div>' +
       '<div class="char-meta">' + (p.ai ? 'AI · ' + esc(p.gender) : 'Human') + (!p.alive ? ' · Out' : '') + '</div>' +
       '</div>';
@@ -294,7 +274,7 @@ function replayButtons() {
 
 // ---------- audio ----------
 async function speak(e) {
-  const voice = voiceForName(e.name, e.voice);
+  const voice = voiceForAvatar({ voice: e.voice, gender: e.gender }, e.name);
   if (!e.audio) {
     try { e.audio = (await post('/tts', { text: e.text, voice, rate: +cfg.speech_rate })).audio_base64; $('tts').textContent = ''; }
     catch (err) { $('tts').textContent = 'Voice error: ' + err.message; return; }
@@ -394,41 +374,137 @@ async function loadAll() {
   pairs = await rest('word_pairs', 'select=*');
 }
 
-async function lobby() {
-  await loadAll();
-  const total = cfg.human_count + cfg.ai_count;
-  if (total < 3 || total > 8 || cfg.undercover_count > Math.floor((total - 1) / 2) || !pairs.length)
-    return view('<h2>Not ready</h2><p class="err">Ask your teacher to check the settings and word list in the admin page.</p><button data-go="x" onclick="start()">Try again</button>');
-  let names = '';
-  for (let i = 0; i < cfg.human_count; i++) names += '<p>Player ' + (i + 1) + ': <input class="nm" value="Player ' + (i + 1) + '" maxlength="12" style="font:inherit;padding:6px"></p>';
-  await wait('<h2>New game</h2><p>' + cfg.human_count + ' human and ' + cfg.ai_count + ' AI players, ' + cfg.undercover_count + ' undercover.</p>' + names +
-    '<button data-go="go">Start</button><button class="alt" data-go="reset">Reset scores</button>').then(async a => {
-    if (a === 'reset') { scores = {}; try { localStorage.removeItem('uc_scores'); } catch (e) {} drawScores(); return lobby(); }
-    const hs = [...document.querySelectorAll('.nm')].map((i, k) => i.value.trim() || 'Player ' + (k + 1));
-    if (new Set(hs).size < hs.length) return lobby();
-    await play(hs);
+function lobby() {
+  return new Promise(async resolve => {
+    await loadAll();
+    const hCount = Math.max(0, +cfg.human_count || 0);
+    const aCount = Math.max(0, +cfg.ai_count || 0);
+    const total = hCount + aCount;
+    if (total < 3 || total > 8 || cfg.undercover_count > Math.floor((total - 1) / 2) || !pairs.length) {
+      view('<h2>Not ready</h2><p class="err">Ask your teacher to check the settings and word list in the admin page.</p><button id="retry">Try again</button>');
+      $('retry').onclick = () => resolve({ action: 'retry' });
+      return;
+    }
+
+    const picked = Array.from({ length: hCount }, (_, idx) => AVATAR_POOL[idx % AVATAR_POOL.length].id);
+    // Ensure distinct initial picks when possible
+    const seenInit = new Set();
+    for (let i = 0; i < picked.length; i++) {
+      if (seenInit.has(picked[i])) {
+        const alt = AVATAR_POOL.find(a => !seenInit.has(a.id));
+        if (alt) picked[i] = alt.id;
+      }
+      seenInit.add(picked[i]);
+    }
+
+    function renderLobby(errMsg) {
+      let blocks = '';
+      for (let i = 0; i < hCount; i++) {
+        const currentPick = picked[i];
+        const takenByOthers = new Set(picked.filter((id, idx) => idx !== i));
+        const gridHtml = AVATAR_POOL.map(av => {
+          const isSel = currentPick === av.id;
+          const taken = takenByOthers.has(av.id);
+          const fb = fallbackSvgDataUri(av.gender, av.label);
+          return '<button type="button" class="pick-btn' + (isSel ? ' selected' : '') + '" data-h="' + i + '" data-av="' + av.id + '"' + (taken ? ' disabled title="Already picked"' : '') + '>' +
+            '<img src="' + esc(av.img) + '" alt="' + esc(av.label) + '" onerror="this.onerror=null;this.src=\'' + fb + '\'">' +
+            '<span>' + esc(av.label) + '</span>' +
+            '</button>';
+        }).join('');
+
+        blocks += '<div class="human-setup">' +
+          '<div class="human-top"><label>Human ' + (i + 1) + ' Name:</label>' +
+          '<input class="nm" data-hname="' + i + '" value="Player ' + (i + 1) + '" maxlength="12" style="font:inherit;padding:6px 10px;border:2px solid var(--line);border-radius:8px"></div>' +
+          '<div style="font-size:13px;color:#4f6361;margin-bottom:6px">Choose portrait:</div>' +
+          '<div class="picker-grid">' + gridHtml + '</div>' +
+          '</div>';
+      }
+
+      view('<h2>New game</h2>' +
+        '<p>' + hCount + ' human and ' + aCount + ' AI players, ' + cfg.undercover_count + ' undercover.</p>' +
+        (errMsg ? '<p class="err">' + esc(errMsg) + '</p>' : '') +
+        blocks +
+        '<button id="goBtn">Start</button><button type="button" class="alt" id="resetBtn">Reset scores</button>');
+
+      $('main').querySelectorAll('.pick-btn').forEach(btn => {
+        btn.onclick = () => {
+          const hIdx = +btn.dataset.h;
+          const avId = btn.dataset.av;
+          if (picked.some((id, idx) => idx !== hIdx && id === avId)) return;
+          // Preserve typed names across re-render
+          const savedNames = [...document.querySelectorAll('.nm')].map(inp => inp.value);
+          picked[hIdx] = avId;
+          renderLobby('');
+          [...document.querySelectorAll('.nm')].forEach((inp, idx) => {
+            if (savedNames[idx] !== undefined) inp.value = savedNames[idx];
+          });
+        };
+      });
+
+      $('resetBtn').onclick = () => {
+        scores = {};
+        try { localStorage.removeItem('uc_scores'); } catch (e) {}
+        drawScores();
+        renderLobby('');
+      };
+
+      $('goBtn').onclick = () => {
+        const hs = [...document.querySelectorAll('.nm')].map((inp, k) => inp.value.trim() || 'Player ' + (k + 1));
+        if (new Set(hs).size < hs.length) {
+          renderLobby('Human player names must be unique.');
+          return;
+        }
+        resolve({ action: 'start', humanNames: hs, humanAvatarIds: picked });
+      };
+    }
+
+    renderLobby('');
   });
 }
 
-async function play(humanNames) {
+async function play(humanNames, humanAvatarIds) {
   let fresh = pairs.filter(p => !used.has(p.id)); if (!fresh.length) { used.clear(); fresh = pairs; }
   const pr = fresh[Math.floor(Math.random() * fresh.length)]; used.add(pr.id);
   const flip = Math.random() < .5, cWord = flip ? pr.word_b : pr.word_a, uWord = flip ? pr.word_a : pr.word_b;
 
+  const usedAvatarIds = new Set();
   const humanObjs = humanNames.map((n, idx) => {
-    const g = guessGender(n);
+    const chosenId = humanAvatarIds && humanAvatarIds[idx];
+    const av = AVATAR_POOL.find(a => a.id === chosenId && !usedAvatarIds.has(a.id))
+      || AVATAR_POOL.find(a => !usedAvatarIds.has(a.id))
+      || AVATAR_POOL[idx % AVATAR_POOL.length];
+    usedAvatarIds.add(av.id);
     return {
       name: n,
       ai: false,
-      gender: g,
-      voice: voiceForName(n),
-      shirt: idx % 2 === 0 ? '#3d5a80' : '#6d597a',
-      hair: idx % 2 === 0 ? '#26211d' : '#3d2618',
-      style: g === 'female' ? 'ponytail' : 'cap',
-      blush: '#ffcad4'
+      avatarId: av.id,
+      label: av.label,
+      gender: av.gender,
+      voice: voiceForAvatar(av, n),
+      img: av.img
     };
   });
-  const aiObjs = AI_CAST.slice(0, cfg.ai_count).map(c => ({ ...c }));
+
+  const remainingAvatars = AVATAR_POOL.filter(a => !usedAvatarIds.has(a.id));
+  const aiObjs = [];
+  for (let i = 0; i < (cfg.ai_count || 0); i++) {
+    const av = remainingAvatars[i] || AVATAR_POOL.find(a => !usedAvatarIds.has(a.id)) || AVATAR_POOL[i % AVATAR_POOL.length];
+    usedAvatarIds.add(av.id);
+    // Avoid name collision with human players
+    let aiName = av.defaultName;
+    if (humanObjs.some(h => h.name.toLowerCase() === aiName.toLowerCase())) {
+      aiName = aiName + ' AI';
+    }
+    aiObjs.push({
+      name: aiName,
+      ai: true,
+      avatarId: av.id,
+      label: av.label,
+      gender: av.gender,
+      voice: voiceForAvatar(av, aiName),
+      img: av.img
+    });
+  }
 
   const ps = shuffle([...humanObjs, ...aiObjs]);
   const us = new Set(shuffle(ps.map((_, i) => i)).slice(0, cfg.undercover_count));
@@ -436,7 +512,8 @@ async function play(humanNames) {
   S = { players: ps, hist: [], cWord, uWord };
   drawScores();
 
-  for (const p of ps.filter(p => !p.ai)) {   // secret cards
+  // Pass-and-play secret cards: tap card to reveal word, then hide & pass
+  for (const p of ps.filter(p => !p.ai)) {
     await wait('<h2>' + esc(p.name) + ', this card is for you</h2><p>Nobody else should look.</p><button data-go="y">I am ' + esc(p.name) + '</button>');
     view('<h2>' + esc(p.name) + '</h2><div class="card" id="card">Tap to see your word</div><button data-go="h">Hide the card</button>');
     $('card').onclick = () => { $('card').textContent = p.word; $('card').classList.add('up'); };
@@ -468,7 +545,8 @@ async function turn(p, round, kind) {
   const phase = kind === 'defend' ? ('Round ' + round + ' · Defence') : ('Round ' + round + ' · Clue');
   let text;
   if (p.ai) {
-    view('<h2>' + esc(p.name) + ' is thinking...</h2>' + playerBoard(p.name, phase));
+    // Auto-generated by AI; humans cannot edit or override AI lines
+    view('<h2>' + esc(p.name) + ' is generating a line...</h2>' + playerBoard(p.name, phase));
     text = (await post('/ai/speak', {
       name: p.name,
       word: p.word,
@@ -478,14 +556,14 @@ async function turn(p, round, kind) {
       history: hist4ai(),
       mode: kind === 'defend' ? 'defend' : 'speak'
     })).content;
-  } else {
-    text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name, phase, p.name);
-  }
-  const e = { round, name: p.name, text, ai: p.ai, voice: p.voice, kind };
-  S.hist.push(e);
-  if (p.ai) {
+    const e = { round, name: p.name, text, ai: true, voice: p.voice, gender: p.gender, kind };
+    S.hist.push(e);
     speak(e);
     await wait('<h2>' + esc(p.name) + ' says:</h2><button data-go="n">Next</button>' + replayButtons() + playerBoard(p.name, phase));
+  } else {
+    text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name, phase, p.name);
+    const e = { round, name: p.name, text, ai: false, voice: p.voice, gender: p.gender, kind };
+    S.hist.push(e);
   }
 }
 
@@ -500,7 +578,7 @@ async function vote(cands, round, second) {
       view('<h2>' + esc(v.name) + ' is voting...</h2>' + playerBoard(v.name, phase));
       const r = await post('/ai/vote', { name: v.name, word: v.word, history: hist4ai(), candidates: opts.map(o => o.name) });
       target = r.target;
-      const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + r.reason, ai: true, voice: v.voice, kind: 'vote' };
+      const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + r.reason, ai: true, voice: v.voice, gender: v.gender, kind: 'vote' };
       S.hist.push(e);
       speak(e);
       await wait('<h2>' + esc(v.name) + ' votes</h2><button data-go="n">Next</button>' + replayButtons() + playerBoard(v.name, phase));
@@ -530,7 +608,11 @@ async function finish(winner) {
 }
 
 async function start() {
-  try { await lobby(); }
+  try {
+    const res = await lobby();
+    if (res.action === 'retry') return start();
+    await play(res.humanNames, res.humanAvatarIds);
+  }
   catch (e) { await wait('<h2>Something went wrong</h2><p class="err">' + esc(e.message || String(e)) + '</p><button data-go="r">Start again</button>'); start(); }
 }
 drawScores();
