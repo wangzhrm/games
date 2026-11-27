@@ -128,7 +128,7 @@ function humanSpeak(title) {
       try {
         const r = await post('/asr', { audio_base64: await wavB64(await stopRec()) });
         $('tx').value = r.text || '';
-        st(r.text ? 'Check the words. Fix them if needed, then press Confirm.' : 'Nothing recognised. Try again or type.');
+        console.log('ASR reply', r); st(r.text ? 'Check the words. Fix them if needed, then press Confirm.' : 'Nothing recognised. Try again or type. [debug: ' + JSON.stringify(r.raw || r).slice(0, 400) + ']');
       } catch (err) { st('Could not recognise (' + err.message + '). You can type instead.'); }
     };
     $('ok').onclick = () => { const t = $('tx').value.trim(); if (t) res(t); else st('Say or type something first.'); };
