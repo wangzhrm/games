@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Undercover</title>
-<script src="https://static.cloudbase.net/cloudbase-js-sdk/2.20.6/cloudbase.full.js"></script>
 <style>
 :root{--bg:#fff7e6;--ink:#1d2b2a;--teal:#1f6f6b;--sun:#f0b429;--card:#fff;--line:#e6d9bb;--bad:#b3261e}
 *{box-sizing:border-box}
@@ -140,17 +139,15 @@ function humanSpeak(title) {
 const alive = () => S.players.filter(p => p.alive);
 const hist4ai = () => S.hist.filter(e => e.kind !== 'vote').map(e => ({ round: e.round, name: e.name, text: e.text }));
 
+async function rest(table, query) {
+  const r = await fetch('https://' + CFG.ENV + '.api.tcloudbasegateway.com/v1/rdb/rest/' + table + '?' + query, { headers: { Authorization: 'Bearer ' + CFG.KEY } });
+  const j = await r.json().catch(() => null);
+  if (!r.ok) throw new Error((j && (j.message || j.error)) || 'Database error ' + r.status);
+  return j;
+}
 async function loadAll() {
-  const app = cloudbase.init({ env: CFG.ENV, accessKey: CFG.KEY, region: 'ap-shanghai' });
-  const auth = typeof app.auth === 'function' ? app.auth({ persistence: 'local' }) : app.auth;
-  try { await auth.signInAnonymously(); } catch (e) {}
-  db = app.rdb();
-  const s = await db.from('settings').select('*').eq('id', 1);
-  if (s.error) throw new Error(s.error.message);
-  cfg = s.data[0];
-  const w = await db.from('word_pairs').select('*');
-  if (w.error) throw new Error(w.error.message);
-  pairs = w.data;
+  cfg = (await rest('settings', 'select=*&id=eq.1'))[0];
+  pairs = await rest('word_pairs', 'select=*');
 }
 
 async function lobby() {
