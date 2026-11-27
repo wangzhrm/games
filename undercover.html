@@ -28,6 +28,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .status-slot{min-height:44px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
 .status-slot h2{margin:0;font-size:26px;line-height:1.2}
 .status-hint{font-size:14px;color:var(--teal);min-height:20px}
+.status-hint.warn{color:var(--bad);font-weight:bold}
 .action-slot{min-height:56px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
 
 /* Lobby human avatar picker */
@@ -98,26 +99,26 @@ const CFG = {
   API: "https://civil-prawn-d0gflguvzee35fad8-1395372774.ap-shanghai.app.tcloudbase.com/undercover-api"
 };
 
-const MALE_VOICES = ["xunanchuan_v3.1", "longanyang_v3.1", "longhan_v3.1"];
-const FEMALE_VOICES = ["longanhuan_v3.1", "longanlingxin_v3.1", "longanfengyue_v3.1"];
+const MALE_VOICES = ["longanyang_v3.1", "longhan_v3.1", "xunanchuan_v3.1"];
+const FEMALE_VOICES = ["longanlingxin_v3.1", "longanfengyue_v3.1", "longanhuan_v3.1"];
 
 const AVATAR_POOL = [
-  { id: "m1", label: "M1", gender: "male",   defaultName: "Leo",  voice: "xunanchuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m1.png" },
-  { id: "m2", label: "M2", gender: "male",   defaultName: "Max",  voice: "longanyang_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m2.png" },
-  { id: "m3", label: "M3", gender: "male",   defaultName: "Ben",  voice: "longhan_v3.1",      img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m3.png" },
-  { id: "m4", label: "M4", gender: "male",   defaultName: "Ryan", voice: "xunanchuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m4.png" },
-  { id: "m5", label: "M5", gender: "male",   defaultName: "Liam", voice: "longanyang_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m5.png" },
-  { id: "m6", label: "M6", gender: "male",   defaultName: "Noah", voice: "longhan_v3.1",      img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m6.png" },
-  { id: "m7", label: "M7", gender: "male",   defaultName: "Jack", voice: "xunanchuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m7.png" },
-  { id: "m8", label: "M8", gender: "male",   defaultName: "Sam",  voice: "longanyang_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m8.png" },
-  { id: "f1", label: "F1", gender: "female", defaultName: "Mia",  voice: "longanhuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f1.png" },
-  { id: "f2", label: "F2", gender: "female", defaultName: "Zoe",  voice: "longanlingxin_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f2.png" },
-  { id: "f3", label: "F3", gender: "female", defaultName: "Amy",  voice: "longanfengyue_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f3.png" },
-  { id: "f4", label: "F4", gender: "female", defaultName: "Eva",  voice: "longanhuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f4.png" },
-  { id: "f5", label: "F5", gender: "female", defaultName: "Lily", voice: "longanlingxin_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f5.png" },
-  { id: "f6", label: "F6", gender: "female", defaultName: "Lucy", voice: "longanfengyue_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f6.png" },
-  { id: "f7", label: "F7", gender: "female", defaultName: "Anna", voice: "longanhuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f7.png" },
-  { id: "f8", label: "F8", gender: "female", defaultName: "Ella", voice: "longanlingxin_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f8.png" }
+  { id: "m1", label: "M1", gender: "male",   defaultName: "Leo",  voice: "longanyang_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m1.png" },
+  { id: "m2", label: "M2", gender: "male",   defaultName: "Max",  voice: "longhan_v3.1",      img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m2.png" },
+  { id: "m3", label: "M3", gender: "male",   defaultName: "Ben",  voice: "xunanchuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m3.png" },
+  { id: "m4", label: "M4", gender: "male",   defaultName: "Ryan", voice: "longanyang_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m4.png" },
+  { id: "m5", label: "M5", gender: "male",   defaultName: "Liam", voice: "longhan_v3.1",      img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m5.png" },
+  { id: "m6", label: "M6", gender: "male",   defaultName: "Noah", voice: "xunanchuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m6.png" },
+  { id: "m7", label: "M7", gender: "male",   defaultName: "Jack", voice: "longanyang_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m7.png" },
+  { id: "m8", label: "M8", gender: "male",   defaultName: "Sam",  voice: "longhan_v3.1",      img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m8.png" },
+  { id: "f1", label: "F1", gender: "female", defaultName: "Mia",  voice: "longanlingxin_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f1.png" },
+  { id: "f2", label: "F2", gender: "female", defaultName: "Zoe",  voice: "longanfengyue_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f2.png" },
+  { id: "f3", label: "F3", gender: "female", defaultName: "Amy",  voice: "longanhuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f3.png" },
+  { id: "f4", label: "F4", gender: "female", defaultName: "Eva",  voice: "longanlingxin_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f4.png" },
+  { id: "f5", label: "F5", gender: "female", defaultName: "Lily", voice: "longanfengyue_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f5.png" },
+  { id: "f6", label: "F6", gender: "female", defaultName: "Lucy", voice: "longanhuan_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f6.png" },
+  { id: "f7", label: "F7", gender: "female", defaultName: "Anna", voice: "longanlingxin_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f7.png" },
+  { id: "f8", label: "F8", gender: "female", defaultName: "Ella", voice: "longanfengyue_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f8.png" }
 ];
 
 function guessGender(name) {
@@ -130,10 +131,13 @@ function guessGender(name) {
 
 function normalizeGender(av, name) {
   if (av && (av.gender === "female" || av.gender === "male")) return av.gender;
+  if (av && typeof av.avatarId === "string") {
+    if (av.avatarId.startsWith("f")) return "female";
+    if (av.avatarId.startsWith("m")) return "male";
+  }
   return guessGender(name);
 }
 
-// Strictly match voice pool to character gender
 function voiceForGender(gender, seedStr, preferredVoice) {
   const g = gender === "female" ? "female" : "male";
   const pool = g === "female" ? FEMALE_VOICES : MALE_VOICES;
@@ -147,6 +151,42 @@ function voiceForGender(gender, seedStr, preferredVoice) {
 function voiceForAvatar(av, name) {
   const g = normalizeGender(av, name);
   return voiceForGender(g, (av && av.id) || name, av && av.voice);
+}
+
+function containsForbiddenWord(text, forbiddenList) {
+  const normText = " " + (text || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() + " ";
+  const compactText = (text || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+  if (!normText.trim()) return false;
+  for (const w of (forbiddenList || [])) {
+    const base = (w || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    if (!base) continue;
+    const compact = base.replace(/\s+/g, "");
+    const variants = new Set([base, compact]);
+    for (const term of [...variants]) {
+      if (term.length >= 3) {
+        variants.add(term + "s");
+        variants.add(term + "es");
+        variants.add(term + "ed");
+        variants.add(term + "ing");
+        variants.add(term + "er");
+        variants.add(term + "ers");
+      }
+    }
+    for (const part of base.split(/\s+/)) {
+      if (part.length >= 4) {
+        variants.add(part);
+        variants.add(part + "s");
+        variants.add(part + "ing");
+        variants.add(part + "ed");
+      }
+    }
+    for (const v of variants) {
+      if (v && (normText.includes(" " + v + " ") || (v.length >= 4 && compactText.includes(v)))) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 function fallbackSvgDataUri(gender, label) {
@@ -331,7 +371,6 @@ function playerBoard(activeName, phaseLabel) {
   return html;
 }
 
-// ---------- screens with scroll & position stability ----------
 function bindAmps() {
   $('main').querySelectorAll('[data-amp]').forEach(btn => {
     btn.onclick = ev => {
@@ -370,8 +409,8 @@ function wait(h) {
   });
 }
 
-function boardScreen(titleText, actionHtml, activeName, phaseLabel, hintText) {
-  return '<div class="status-slot"><h2>' + esc(titleText) + '</h2><span class="status-hint" id="liveHint">' + esc(hintText || '') + '</span></div>' +
+function boardScreen(titleText, actionHtml, activeName, phaseLabel, hintText, isWarn) {
+  return '<div class="status-slot"><h2>' + esc(titleText) + '</h2><span class="status-hint' + (isWarn ? ' warn' : '') + '" id="liveHint">' + esc(hintText || '') + '</span></div>' +
     '<div class="action-slot">' + (actionHtml || '') + '</div>' +
     playerBoard(activeName, phaseLabel);
 }
@@ -409,15 +448,18 @@ function speakBrowserFallback(text, gender, seq) {
   if (!('speechSynthesis' in window) || seq !== speechSeq) return false;
   try {
     window.speechSynthesis.cancel();
+    const g = gender === 'female' ? 'female' : 'male';
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'en-US';
     u.rate = Math.max(0.75, Math.min(1.25, +cfg.speech_rate || 0.92));
+    u.pitch = g === 'female' ? 1.12 : 0.88;
     const voices = window.speechSynthesis.getVoices() || [];
     const enVoices = voices.filter(v => /en/i.test(v.lang));
-    const g = gender === 'female' ? 'female' : 'male';
-    const matched = enVoices.find(v => g === 'female'
-      ? /female|zira|samantha|victoria|aria|jenny|ava|allison|claire|zoe/i.test(v.name)
-      : /male|david|mark|alex|daniel|guy|ryan|arthur|george|liam|noah/i.test(v.name)) || enVoices[0];
+    const femaleRx = /female|woman|girl|zira|samantha|victoria|aria|jenny|ava|allison|claire|zoe|hazel|susan|karen|moira|tessa|fiona/i;
+    const maleRx = /male|man|boy|david|mark|alex|daniel|guy|ryan|arthur|george|liam|noah|james|thomas|fred|oliver/i;
+    const matched = g === 'female'
+      ? (enVoices.find(v => femaleRx.test(v.name)) || enVoices.find(v => !maleRx.test(v.name)) || enVoices[0])
+      : (enVoices.find(v => maleRx.test(v.name)) || enVoices.find(v => !femaleRx.test(v.name)) || enVoices[0]);
     if (matched) u.voice = matched;
     window.speechSynthesis.speak(u);
     return true;
@@ -493,16 +535,18 @@ async function wavB64(blob) {
 }
 
 // ---------- human speech: button on character portrait, draft text in player's bubble ----------
-function humanSpeak(title, phaseLabel, activeName, round, kind) {
+function humanSpeak(title, phaseLabel, playerObj, round, kind) {
   stopAudio();
-  activeDraft = { playerName: activeName, round, kind, text: '', recording: false };
+  activeDraft = { playerName: playerObj.name, round, kind, text: '', recording: false };
 
   return new Promise(res => {
     let holding = false;
 
-    function setHint(msg) {
+    function setHint(msg, warn = false) {
       const el = $('liveHint');
-      if (el) el.textContent = msg;
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.toggle('warn', Boolean(warn));
     }
 
     function wireControls() {
@@ -532,7 +576,7 @@ function humanSpeak(title, phaseLabel, activeName, round, kind) {
           } catch (err) {
             holding = false;
             if (activeDraft) activeDraft.recording = false;
-            setHint('Mic error: ' + err.message + '. Type in bubble.');
+            setHint('Mic error: ' + err.message + '. Type in bubble.', true);
           }
         };
 
@@ -547,19 +591,23 @@ function humanSpeak(title, phaseLabel, activeName, round, kind) {
           setHint('Recognising...');
           try {
             const blob = await stopRec();
-            if (!blob.size) { setHint('No audio captured. Hold longer or type.'); return; }
+            if (!blob.size) { setHint('No audio captured. Hold longer or type.', true); return; }
             const r = await post('/asr', { audio_base64: await wavB64(blob) });
             const heard = (r.text || '').trim();
             if (heard) {
               if (activeDraft) activeDraft.text = heard;
               const curBox = $('draftBox');
               if (curBox) curBox.value = heard;
-              setHint('Check text in bubble, then Confirm.');
+              if (containsForbiddenWord(heard, [playerObj.word])) {
+                setHint('Do not say your secret word! Edit before confirming.', true);
+              } else {
+                setHint('Check text in bubble, then Confirm.');
+              }
             } else {
-              setHint('Nothing heard. Try again or type.');
+              setHint('Nothing heard. Try again or type.', true);
             }
           } catch (err) {
-            setHint('ASR failed (' + err.message + '). Type in bubble.');
+            setHint('ASR failed (' + err.message + '). Type in bubble.', true);
           }
         };
 
@@ -572,7 +620,11 @@ function humanSpeak(title, phaseLabel, activeName, round, kind) {
           const curBox = $('draftBox');
           const t = (curBox ? curBox.value : (activeDraft ? activeDraft.text : '')).trim();
           if (!t) {
-            setHint('Hold speak on portrait or type in bubble first.');
+            setHint('Hold speak on portrait or type in bubble first.', true);
+            return;
+          }
+          if (containsForbiddenWord(t, [playerObj.word])) {
+            setHint('You cannot say your secret word in your description!', true);
             return;
           }
           activeDraft = null;
@@ -581,7 +633,7 @@ function humanSpeak(title, phaseLabel, activeName, round, kind) {
       }
     }
 
-    view(boardScreen(title, '', activeName, phaseLabel, 'Hold "Hold speak" on ' + activeName + ' or type in bubble.'));
+    view(boardScreen(title, '', playerObj.name, phaseLabel, 'Hold "Hold speak" on ' + playerObj.name + ' or type in bubble.'));
     wireControls();
   });
 }
@@ -713,7 +765,6 @@ async function play(humanNames, humanAvatarIds) {
     };
   });
 
-  // Randomly pick AI characters from the remaining unused avatars
   const remainingAvatars = shuffle(AVATAR_POOL.filter(a => !usedAvatarIds.has(a.id)));
   const aiObjs = [];
   for (let i = 0; i < (cfg.ai_count || 0); i++) {
@@ -779,7 +830,7 @@ async function turn(p, round, kind) {
   const phase = kind === 'defend' ? ('Round ' + round + ' · Defence') : ('Round ' + round + ' · Clue');
   if (p.ai) {
     view(boardScreen(p.name + ' is thinking...', '', p.name, phase));
-    const text = (await post('/ai/speak', {
+    let text = (await post('/ai/speak', {
       name: p.name,
       word: p.word,
       level: cfg.difficulty,
@@ -788,13 +839,16 @@ async function turn(p, round, kind) {
       history: hist4ai(),
       mode: kind === 'defend' ? 'defend' : 'speak'
     })).content;
+    if (containsForbiddenWord(text, [p.word])) {
+      text = 'I have a clear picture of what this means in context.';
+    }
     const e = { round, name: p.name, text, ai: true, voice: p.voice, gender: p.gender, kind };
     S.hist.push(e);
     const waitPromise = wait(boardScreen(p.name + ' says:', '<button data-go="n">Next</button>', p.name, phase));
     speak(e);
     await waitPromise;
   } else {
-    const text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name, phase, p.name, round, kind);
+    const text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name, phase, p, round, kind);
     const e = { round, name: p.name, text, ai: false, voice: p.voice, gender: p.gender, kind };
     S.hist.push(e);
   }
@@ -811,7 +865,11 @@ async function vote(cands, round, second) {
       view(boardScreen(v.name + ' is voting...', '', v.name, phase));
       const r = await post('/ai/vote', { name: v.name, word: v.word, history: hist4ai(), candidates: opts.map(o => o.name) });
       target = r.target;
-      const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + r.reason, ai: true, voice: v.voice, gender: v.gender, kind: 'vote' };
+      let reason = r.reason || '';
+      if (containsForbiddenWord(reason, [v.word])) {
+        reason = target + "'s clue seemed the least consistent with the group.";
+      }
+      const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + reason, ai: true, voice: v.voice, gender: v.gender, kind: 'vote' };
       S.hist.push(e);
       const waitPromise = wait(boardScreen(v.name + ' votes', '<button data-go="n">Next</button>', v.name, phase));
       speak(e);
