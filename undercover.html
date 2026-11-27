@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Undercover</title>
 <style>
 :root{--bg:#fff7e6;--ink:#1d2b2a;--teal:#1f6f6b;--sun:#f0b429;--card:#fff;--line:#e6d9bb;--bad:#b3261e;--clue-bg:#e6f6f3;--clue-bd:#68b0a8;--vote-bg:#fff0d6;--vote-bd:#e5a94c;--draft-bg:#fffdf5;--draft-bd:#1f6f6b}
@@ -12,68 +12,80 @@ header{background:var(--teal);color:#fff;padding:10px 18px;display:flex;justify-
 header h1{margin:0;font-size:24px}
 #score{font-size:16px;display:flex;gap:12px;flex-wrap:wrap}
 #score span{background:rgba(255,255,255,.18);padding:2px 10px;border-radius:12px}
-main{max-width:1160px;margin:0 auto;padding:14px 16px 32px;overflow-anchor:none}
+main{max-width:1180px;margin:0 auto;padding:14px 16px 36px;overflow-anchor:none}
 h2{margin:4px 0 6px}
-button{font:inherit;padding:12px 20px;border:0;border-radius:12px;background:var(--teal);color:#fff;margin:0 8px 0 0;cursor:pointer;touch-action:manipulation}
+button{font:inherit;padding:13px 22px;min-height:44px;border:0;border-radius:12px;background:var(--teal);color:#fff;margin:0 8px 0 0;cursor:pointer;touch-action:manipulation}
 button.alt{background:#fff;color:var(--teal);border:2px solid var(--teal)}
 button.sun{background:var(--sun);color:var(--ink)}
 button:disabled{opacity:.4;cursor:not-allowed}
 :focus-visible{outline:4px solid var(--sun);outline-offset:2px}
-.card{background:var(--card);border:3px dashed var(--teal);border-radius:20px;min-height:200px;display:flex;align-items:center;justify-content:center;font-size:40px;text-align:center;margin:12px 0;padding:16px;cursor:pointer}
+.card{background:var(--card);border:3px dashed var(--teal);border-radius:20px;min-height:210px;display:flex;align-items:center;justify-content:center;font-size:40px;text-align:center;margin:12px 0;padding:16px;cursor:pointer}
 .card.up{border-style:solid;background:#e8f4f2}
 .err{color:var(--bad);font-weight:bold}
-.grid{display:flex;flex-wrap:wrap;gap:6px}
+.grid{display:flex;flex-wrap:wrap;gap:8px}
 
 /* Fixed-height status & action slot so board content never shifts vertically */
-.status-slot{min-height:42px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
+.status-slot{min-height:44px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
 .status-slot h2{margin:0;font-size:26px;line-height:1.2}
 .status-hint{font-size:14px;color:var(--teal);min-height:20px}
-.action-slot{min-height:54px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.action-slot{min-height:56px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
 
 /* Lobby human avatar picker */
 .human-setup{background:#fffdf7;border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin:12px 0}
 .human-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
 .human-top label{font-weight:bold}
-.picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px}
-.pick-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;margin:0;border-radius:10px;border:2px solid var(--line);background:#fff;color:var(--ink);font-size:11px;font-weight:bold}
+.picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
+.pick-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px;margin:0;min-height:74px;border-radius:10px;border:2px solid var(--line);background:#fff;color:var(--ink);font-size:12px;font-weight:bold}
 .pick-btn.selected{border-color:var(--teal);background:#dff3ef;box-shadow:0 0 0 2px var(--teal)}
-.pick-btn img{width:46px;height:46px;object-fit:cover;object-position:top center;border-radius:8px;display:block}
+.pick-btn img{width:52px;height:52px;object-fit:cover;object-position:top center;border-radius:8px;display:block}
 
 /* Open board: sticky character headers + aligned round/statement rows */
-.board-wrap{overflow-x:auto;margin:8px 0 16px;overflow-anchor:none}
-.board-grid{display:grid;gap:8px;min-width:640px;align-items:start;overflow-anchor:none}
-.sticky-top{position:sticky;top:0;z-index:20;background:var(--bg);padding:8px 4px 10px;border-bottom:2px solid var(--line)}
-.char-cell{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 4px;border-radius:14px;min-height:164px;justify-content:flex-start;transition:background .15s,box-shadow .15s}
+.board-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 16px;overflow-anchor:none}
+.board-grid{display:grid;gap:8px;min-width:660px;align-items:start;overflow-anchor:none}
+.sticky-top{position:sticky;top:0;z-index:20;background:var(--bg);padding:8px 4px 12px;border-bottom:2px solid var(--line)}
+.char-cell{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 4px;border-radius:14px;min-height:176px;justify-content:flex-start;transition:background .15s,box-shadow .15s}
 .char-cell.active{background:#fff1bd;box-shadow:0 0 0 2.5px var(--teal)}
 .char-cell.out{opacity:.45;filter:grayscale(.75)}
-.char-badge{font-size:11px;font-weight:bold;background:var(--teal);color:#fff;border-radius:999px;padding:1px 8px;margin-bottom:4px}
-.char-portrait-box{position:relative;width:76px;height:86px;flex-shrink:0}
-.char-frame{width:76px;height:86px;border-radius:14px;overflow:hidden;border:2px solid var(--ink);background:#fff;display:flex;align-items:center;justify-content:center}
+.char-badge{font-size:11px;font-weight:bold;background:var(--teal);color:#fff;border-radius:999px;padding:2px 9px;margin-bottom:4px}
+.char-portrait-box{position:relative;width:82px;height:92px;flex-shrink:0}
+.char-frame{width:82px;height:92px;border-radius:14px;overflow:hidden;border:2px solid var(--ink);background:#fff;display:flex;align-items:center;justify-content:center}
 .char-img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
-.char-mic-btn{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:74px;padding:3px 4px;margin:0;border-radius:999px;font-size:10px;font-weight:bold;line-height:1.15;background:var(--sun);color:var(--ink);border:1.5px solid var(--ink);box-shadow:0 2px 5px rgba(0,0,0,.18);white-space:nowrap}
+.char-mic-btn{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);width:96px;min-height:34px;padding:5px 6px;margin:0;border-radius:999px;font-size:12px;font-weight:bold;line-height:1.15;background:var(--sun);color:var(--ink);border:2px solid var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.22);white-space:nowrap;touch-action:none}
 .char-mic-btn.on{background:var(--bad);color:#fff;border-color:#fff}
-.char-name{font-size:15px;font-weight:bold;margin-top:10px;line-height:1.2;min-height:18px}
+.char-name{font-size:15px;font-weight:bold;margin-top:15px;line-height:1.2;min-height:18px}
 .char-meta{font-size:11px;color:#526664;line-height:1.2;min-height:14px}
 
-.row-label{font-size:12px;font-weight:bold;color:#415654;padding:6px 2px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px;min-height:76px}
+.row-label{font-size:12px;font-weight:bold;color:#415654;padding:6px 2px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px;min-height:84px}
 .legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .dot-clue{background:var(--clue-bd)}
 .dot-vote{background:var(--vote-bd)}
 
-.slot-cell{padding:4px 2px;border-top:1px dashed var(--line);min-height:76px}
+.slot-cell{padding:4px 2px;border-top:1px dashed var(--line);min-height:84px}
 .slot-cell.out{opacity:.45}
-.bubble{border-radius:12px;padding:7px 9px;font-size:13px;line-height:1.34;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.bubble{border-radius:12px;padding:8px 10px;font-size:13.5px;line-height:1.36;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .bubble.clue{background:var(--clue-bg);border:1.5px solid var(--clue-bd);color:#153633}
 .bubble.vote{background:var(--vote-bg);border:1.5px solid var(--vote-bd);color:#472c08}
 .bubble.draft{background:var(--draft-bg);border:2px dashed var(--draft-bd);color:var(--ink)}
-.bubble.empty{background:transparent;border:1px dashed #d8cab0;color:#9b9486;font-size:12px;text-align:center;padding:8px 4px;box-shadow:none;min-height:58px;display:flex;align-items:center;justify-content:center}
+.bubble.empty{background:transparent;border:1px dashed #d8cab0;color:#9b9486;font-size:12px;text-align:center;padding:8px 4px;box-shadow:none;min-height:66px;display:flex;align-items:center;justify-content:center}
 .bubble-tag{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.03em;opacity:.72;margin-bottom:3px}
 .bubble-body{display:inline}
-.draft-input{width:100%;font-family:inherit;font-size:12.5px;line-height:1.3;padding:5px 7px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);resize:vertical;min-height:42px;user-select:text;-webkit-user-select:text}
-.draft-confirm{padding:4px 10px;font-size:11.5px;font-weight:bold;border-radius:8px;margin:5px 0 0 0;background:var(--teal);color:#fff}
-.amp-btn{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:22px;height:22px;padding:0;margin:0 0 0 6px;border-radius:999px;font-size:12px;line-height:1;background:rgba(31,111,107,.14);color:var(--ink);border:1px solid rgba(31,111,107,.35)}
+.draft-input{width:100%;font-family:inherit;font-size:14px;line-height:1.35;padding:7px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);resize:vertical;min-height:54px;user-select:text;-webkit-user-select:text}
+.draft-confirm{padding:7px 14px;min-height:36px;font-size:13px;font-weight:bold;border-radius:9px;margin:6px 0 0 0;background:var(--teal);color:#fff}
+.amp-btn{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:28px;height:28px;min-height:28px;padding:0;margin:0 0 0 6px;border-radius:999px;font-size:13px;line-height:1;background:rgba(31,111,107,.14);color:var(--ink);border:1px solid rgba(31,111,107,.35)}
 .bubble.vote .amp-btn{background:rgba(180,115,20,.16);border-color:rgba(180,115,20,.4)}
 .amp-btn:hover{background:var(--sun);color:var(--ink)}
+
+/* Tablet & touch layout adjustments */
+@media (max-width: 1024px) {
+  body{font-size:18px}
+  main{padding:12px 12px 32px}
+  .status-slot h2{font-size:22px}
+  .char-portrait-box,.char-frame{width:88px;height:98px}
+  .char-mic-btn{width:104px;min-height:40px;font-size:13px;bottom:-14px}
+  .char-name{margin-top:18px;font-size:14px}
+  .draft-input{font-size:15px;min-height:60px}
+  .draft-confirm{min-height:42px;padding:8px 16px;font-size:14px}
+}
 </style>
 </head>
 <body>
@@ -115,14 +127,28 @@ function guessGender(name) {
   if (/[aei]$/.test(n) && !["mike","luke","kyle","nate","blake","charlie","jamie"].includes(n)) return "female";
   return "male";
 }
-function voiceForAvatar(av, name) {
-  if (av && av.voice) return av.voice;
-  const g = av ? av.gender : guessGender(name);
+
+function normalizeGender(av, name) {
+  if (av && (av.gender === "female" || av.gender === "male")) return av.gender;
+  return guessGender(name);
+}
+
+// Strictly match voice pool to character gender
+function voiceForGender(gender, seedStr, preferredVoice) {
+  const g = gender === "female" ? "female" : "male";
   const pool = g === "female" ? FEMALE_VOICES : MALE_VOICES;
+  if (preferredVoice && pool.includes(preferredVoice)) return preferredVoice;
   let h = 0;
-  for (let i = 0; i < (name || "").length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  const s = seedStr || "";
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return pool[h % pool.length];
 }
+
+function voiceForAvatar(av, name) {
+  const g = normalizeGender(av, name);
+  return voiceForGender(g, (av && av.id) || name, av && av.voice);
+}
+
 function fallbackSvgDataUri(gender, label) {
   const bg = gender === "female" ? "#fde2e4" : "#dbeafe";
   const fg = gender === "female" ? "#9d174d" : "#1e3a8a";
@@ -137,7 +163,7 @@ function fallbackSvgDataUri(gender, label) {
 
 const $ = id => document.getElementById(id);
 let cfg, pairs = [], used = new Set(), S, scores = {};
-let activeDraft = null; // { playerName, round, kind, text, recording }
+let activeDraft = null;
 try { scores = JSON.parse(localStorage.getItem('uc_scores') || '{}'); } catch (e) {}
 
 const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
@@ -218,7 +244,7 @@ function buildRows() {
 function playerBoard(activeName, phaseLabel) {
   if (!S || !S.players || !S.players.length) return '';
   const n = S.players.length;
-  const colsStyle = 'grid-template-columns: 118px repeat(' + n + ', minmax(156px, 1fr));';
+  const colsStyle = 'grid-template-columns: 118px repeat(' + n + ', minmax(160px, 1fr));';
   const rows = buildRows();
   const draft = activeDraft;
   const draftRowType = draft && draft.kind === 'defend' ? 'defend' : 'clue';
@@ -237,7 +263,7 @@ function playerBoard(activeName, phaseLabel) {
 
   html += '<div class="board-wrap"><div class="board-grid" style="' + colsStyle + '">';
 
-  html += '<div class="sticky-top" style="font-size:12px;font-weight:bold;color:#4f6361;display:flex;align-items:flex-end;padding-bottom:12px;min-height:164px">Players</div>';
+  html += '<div class="sticky-top" style="font-size:12px;font-weight:bold;color:#4f6361;display:flex;align-items:flex-end;padding-bottom:12px;min-height:176px">Players</div>';
   S.players.forEach((p, idx) => {
     const isActive = activeName && p.name === activeName;
     const showMic = Boolean(draft && draft.playerName === p.name);
@@ -245,7 +271,7 @@ function playerBoard(activeName, phaseLabel) {
       '<div class="char-badge">#' + (idx + 1) + '</div>' +
       portraitHtml(p, showMic) +
       '<div class="char-name">' + esc(p.name) + '</div>' +
-      '<div class="char-meta">' + (p.ai ? 'AI · ' + esc(p.gender) : 'Human') + (!p.alive ? ' · Out' : '') + '</div>' +
+      '<div class="char-meta">' + (p.ai ? 'AI · ' + esc(p.gender) : 'Human · ' + esc(p.gender)) + (!p.alive ? ' · Out' : '') + '</div>' +
       '</div>';
   });
 
@@ -263,7 +289,7 @@ function playerBoard(activeName, phaseLabel) {
       return '<div class="slot-cell">' +
         '<div class="bubble draft">' +
         '<div class="bubble-tag">' + (rowKind === 'defend' ? 'Defence Draft' : 'Clue Draft') + '</div>' +
-        '<textarea id="draftBox" class="draft-input" placeholder="Hold portrait button or type...">' + esc(draft.text) + '</textarea>' +
+        '<textarea id="draftBox" class="draft-input" placeholder="Hold speak on portrait or type...">' + esc(draft.text) + '</textarea>' +
         '<button type="button" id="draftConfirm" class="draft-confirm">Confirm</button>' +
         '</div></div>';
     }
@@ -350,7 +376,7 @@ function boardScreen(titleText, actionHtml, activeName, phaseLabel, hintText) {
     playerBoard(activeName, phaseLabel);
 }
 
-// ---------- audio: speak right as text appears, with clean fallback ----------
+// ---------- audio: gender-matched voices, instant playback, clean fallback ----------
 let activeAudio = null;
 let speechSeq = 0;
 
@@ -388,7 +414,10 @@ function speakBrowserFallback(text, gender, seq) {
     u.rate = Math.max(0.75, Math.min(1.25, +cfg.speech_rate || 0.92));
     const voices = window.speechSynthesis.getVoices() || [];
     const enVoices = voices.filter(v => /en/i.test(v.lang));
-    const matched = enVoices.find(v => gender === 'female' ? /female|zira|samantha|victoria|aria|jenny/i.test(v.name) : /male|david|mark|alex|daniel|guy|ryan/i.test(v.name)) || enVoices[0];
+    const g = gender === 'female' ? 'female' : 'male';
+    const matched = enVoices.find(v => g === 'female'
+      ? /female|zira|samantha|victoria|aria|jenny|ava|allison|claire|zoe/i.test(v.name)
+      : /male|david|mark|alex|daniel|guy|ryan|arthur|george|liam|noah/i.test(v.name)) || enVoices[0];
     if (matched) u.voice = matched;
     window.speechSynthesis.speak(u);
     return true;
@@ -400,9 +429,10 @@ function speakBrowserFallback(text, gender, seq) {
 async function speak(e, opts = {}) {
   stopAudio();
   const seq = speechSeq;
-  const primaryVoice = voiceForAvatar({ voice: e.voice, gender: e.gender }, e.name);
-  const fallbackVoice = e.gender === 'female' ? 'longanhuan_v3.1' : 'longanyang_v3.1';
-  const candidates = primaryVoice === fallbackVoice ? [primaryVoice] : [primaryVoice, fallbackVoice];
+  const g = normalizeGender(e, e.name);
+  const genderPool = g === 'female' ? FEMALE_VOICES : MALE_VOICES;
+  const primaryVoice = voiceForGender(g, e.name, e.voice);
+  const candidates = [primaryVoice, ...genderPool.filter(v => v !== primaryVoice)];
 
   if (!e.audio) {
     let fetched = false;
@@ -413,17 +443,18 @@ async function speak(e, opts = {}) {
         if (seq !== speechSeq) return;
         if (res && res.audio_base64) {
           e.audio = res.audio_base64;
-          e.voice = res.voice || v;
+          e.gender = g;
+          e.voice = genderPool.includes(res.voice) ? res.voice : v;
           fetched = true;
           break;
         }
       } catch (err) {
-        // Silent fallback
+        // Try next gender-matched voice or browser fallback
       }
     }
     if (!fetched) {
       if (seq !== speechSeq) return;
-      const ok = speakBrowserFallback(e.text, e.gender, seq);
+      const ok = speakBrowserFallback(e.text, g, seq);
       if (!ok && opts.force) $('tts').textContent = 'Audio unavailable on this device.';
       return;
     }
@@ -433,7 +464,7 @@ async function speak(e, opts = {}) {
   try {
     await playAudioBase64(e.audio, seq);
   } catch (err) {
-    if (seq === speechSeq) speakBrowserFallback(e.text, e.gender, seq);
+    if (seq === speechSeq) speakBrowserFallback(e.text, g, seq);
   }
 }
 
@@ -541,7 +572,7 @@ function humanSpeak(title, phaseLabel, activeName, round, kind) {
           const curBox = $('draftBox');
           const t = (curBox ? curBox.value : (activeDraft ? activeDraft.text : '')).trim();
           if (!t) {
-            setHint('Speak or type a clue in your bubble first.');
+            setHint('Hold speak on portrait or type in bubble first.');
             return;
           }
           activeDraft = null;
@@ -611,7 +642,7 @@ function lobby() {
 
         blocks += '<div class="human-setup">' +
           '<div class="human-top"><label>Human ' + (i + 1) + ' Name:</label>' +
-          '<input class="nm" data-hname="' + i + '" value="Player ' + (i + 1) + '" maxlength="12" style="font:inherit;padding:6px 10px;border:2px solid var(--line);border-radius:8px"></div>' +
+          '<input class="nm" data-hname="' + i + '" value="Player ' + (i + 1) + '" maxlength="12" style="font:inherit;padding:8px 12px;border:2px solid var(--line);border-radius:8px"></div>' +
           '<div style="font-size:13px;color:#4f6361;margin-bottom:6px">Choose portrait:</div>' +
           '<div class="picker-grid">' + gridHtml + '</div>' +
           '</div>';
@@ -670,33 +701,36 @@ async function play(humanNames, humanAvatarIds) {
       || AVATAR_POOL.find(a => !usedAvatarIds.has(a.id))
       || AVATAR_POOL[idx % AVATAR_POOL.length];
     usedAvatarIds.add(av.id);
+    const gender = normalizeGender(av, n);
     return {
       name: n,
       ai: false,
       avatarId: av.id,
       label: av.label,
-      gender: av.gender,
-      voice: voiceForAvatar(av, n),
+      gender,
+      voice: voiceForGender(gender, av.id + ':' + n, av.voice),
       img: av.img
     };
   });
 
-  const remainingAvatars = AVATAR_POOL.filter(a => !usedAvatarIds.has(a.id));
+  // Randomly pick AI characters from the remaining unused avatars
+  const remainingAvatars = shuffle(AVATAR_POOL.filter(a => !usedAvatarIds.has(a.id)));
   const aiObjs = [];
   for (let i = 0; i < (cfg.ai_count || 0); i++) {
-    const av = remainingAvatars[i] || AVATAR_POOL.find(a => !usedAvatarIds.has(a.id)) || AVATAR_POOL[i % AVATAR_POOL.length];
+    const av = remainingAvatars[i] || shuffle(AVATAR_POOL.filter(a => !usedAvatarIds.has(a.id)))[0] || AVATAR_POOL[i % AVATAR_POOL.length];
     usedAvatarIds.add(av.id);
     let aiName = av.defaultName;
     if (humanObjs.some(h => h.name.toLowerCase() === aiName.toLowerCase())) {
       aiName = aiName + ' AI';
     }
+    const gender = normalizeGender(av, aiName);
     aiObjs.push({
       name: aiName,
       ai: true,
       avatarId: av.id,
       label: av.label,
-      gender: av.gender,
-      voice: voiceForAvatar(av, aiName),
+      gender,
+      voice: voiceForGender(gender, av.id + ':' + aiName, av.voice),
       img: av.img
     });
   }
