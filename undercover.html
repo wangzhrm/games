@@ -17,7 +17,6 @@ h2{margin:6px 0 10px}
 button{font:inherit;padding:13px 20px;border:0;border-radius:12px;background:var(--teal);color:#fff;margin:6px 6px 6px 0;cursor:pointer;touch-action:manipulation}
 button.alt{background:#fff;color:var(--teal);border:2px solid var(--teal)}
 button.sun{background:var(--sun);color:var(--ink)}
-button.small{padding:4px 10px;font-size:14px;margin:4px 0 0 0}
 button:disabled{opacity:.4;cursor:not-allowed}
 :focus-visible{outline:4px solid var(--sun);outline-offset:2px}
 .card{background:var(--card);border:3px dashed var(--teal);border-radius:20px;min-height:200px;display:flex;align-items:center;justify-content:center;font-size:40px;text-align:center;margin:12px 0;padding:16px;cursor:pointer}
@@ -58,11 +57,15 @@ textarea{width:100%;font:inherit;padding:10px;border:2px solid var(--line);borde
 
 .slot-cell{padding:4px 2px;border-top:1px dashed var(--line);min-height:54px}
 .slot-cell.out{opacity:.45}
-.bubble{border-radius:12px;padding:7px 9px;font-size:13px;line-height:1.32;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.bubble{border-radius:12px;padding:7px 9px;font-size:13px;line-height:1.34;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .bubble.clue{background:var(--clue-bg);border:1.5px solid var(--clue-bd);color:#153633}
 .bubble.vote{background:var(--vote-bg);border:1.5px solid var(--vote-bd);color:#472c08}
 .bubble.empty{background:transparent;border:1px dashed #d8cab0;color:#9b9486;font-size:12px;text-align:center;padding:8px 4px;box-shadow:none}
 .bubble-tag{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.03em;opacity:.72;margin-bottom:2px}
+.bubble-body{display:inline}
+.amp-btn{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:22px;height:22px;padding:0;margin:0 0 0 6px;border-radius:999px;font-size:12px;line-height:1;background:rgba(31,111,107,.14);color:var(--ink);border:1px solid rgba(31,111,107,.35)}
+.bubble.vote .amp-btn{background:rgba(180,115,20,.16);border-color:rgba(180,115,20,.4)}
+.amp-btn:hover{background:var(--sun);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -153,50 +156,55 @@ function portraitHtml(p) {
     '</div>';
 }
 
+function ampHtml(histIdx) {
+  return '<button type="button" class="amp-btn" data-amp="' + histIdx + '" title="Play audio" aria-label="Play audio">🔊</button>';
+}
+
 // Group history chronologically into rows (each round's clues, each vote/defence step)
 function buildRows() {
   if (!S || !S.hist || !S.hist.length) return [];
   const rows = [];
   let clueRow = null;
 
-  for (const item of S.hist) {
+  S.hist.forEach((item, idx) => {
+    const entry = { text: item.text, histIdx: idx };
     if (item.kind === 'clue') {
       if (!clueRow || clueRow.round !== item.round || item.name in clueRow.cells) {
         clueRow = { id: 'clue-' + item.round + '-' + rows.length, label: 'Round ' + item.round + ' Clues', type: 'clue', cells: {}, round: item.round };
         rows.push(clueRow);
       }
-      clueRow.cells[item.name] = item.text;
+      clueRow.cells[item.name] = entry;
     } else if (item.kind === 'defend') {
       clueRow = null;
       rows.push({
         id: 'defend-' + item.round + '-' + rows.length,
         label: 'Round ' + item.round + ' Defence',
         type: 'clue',
-        cells: { [item.name]: item.text }
+        cells: { [item.name]: entry }
       });
     } else if (item.kind === 'vote') {
       clueRow = null;
       const lastVote = rows.length ? rows[rows.length - 1] : null;
       if (lastVote && lastVote.type === 'vote' && lastVote.round === item.round && !(item.name in lastVote.cells)) {
-        lastVote.cells[item.name] = item.text;
+        lastVote.cells[item.name] = entry;
       } else {
         rows.push({
           id: 'vote-' + item.round + '-' + rows.length,
           label: 'Round ' + item.round + ' Vote',
           type: 'vote',
           round: item.round,
-          cells: { [item.name]: item.text }
+          cells: { [item.name]: entry }
         });
       }
     }
-  }
+  });
   return rows;
 }
 
 function playerBoard(activeName, phaseLabel) {
   if (!S || !S.players || !S.players.length) return '';
   const n = S.players.length;
-  const colsStyle = 'grid-template-columns: 118px repeat(' + n + ', minmax(138px, 1fr));';
+  const colsStyle = 'grid-template-columns: 118px repeat(' + n + ', minmax(145px, 1fr));';
   const rows = buildRows();
 
   let html = '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px;font-size:14px">' +
@@ -232,12 +240,13 @@ function playerBoard(activeName, phaseLabel) {
       const dotClass = r.type === 'vote' ? 'dot-vote' : 'dot-clue';
       html += '<div class="row-label"><span class="legend-dot ' + dotClass + '"></span><span>' + esc(r.label) + '</span></div>';
       for (const p of S.players) {
-        const txt = r.cells[p.name];
-        if (txt) {
+        const cell = r.cells[p.name];
+        if (cell) {
           html += '<div class="slot-cell' + (!p.alive ? ' out' : '') + '">' +
             '<div class="bubble ' + r.type + '">' +
             '<div class="bubble-tag">' + (r.type === 'vote' ? 'Vote' : 'Clue') + '</div>' +
-            esc(txt) +
+            '<span class="bubble-body">' + esc(cell.text) + '</span>' +
+            ampHtml(cell.histIdx) +
             '</div></div>';
         } else {
           html += '<div class="slot-cell' + (!p.alive ? ' out' : '') + '"><div class="bubble empty">—</div></div>';
@@ -251,36 +260,88 @@ function playerBoard(activeName, phaseLabel) {
 }
 
 // ---------- screens ----------
+function bindAmps() {
+  $('main').querySelectorAll('[data-amp]').forEach(btn => {
+    btn.onclick = ev => {
+      ev.stopPropagation();
+      const item = S && S.hist ? S.hist[+btn.dataset.amp] : null;
+      if (item) speak(item, { force: true });
+    };
+  });
+}
 function view(h) {
   $('main').innerHTML = h;
-  $('main').querySelectorAll('[data-rp]').forEach(b => b.onclick = () => {
-    const item = S.hist[+b.dataset.rp];
-    if (item) speak(item);
-  });
+  bindAmps();
 }
 function wait(h) {
   return new Promise(res => { view(h); $('main').querySelectorAll('[data-go]').forEach(b => b.onclick = () => res(b.dataset.go)); });
 }
-function replayButtons() {
-  const aiItems = (S && S.hist ? S.hist : [])
-    .map((e, i) => ({ e, i }))
-    .filter(x => x.e.ai)
-    .slice(-3);
-  if (!aiItems.length) return '';
-  return '<div style="margin:6px 0 10px">' +
-    aiItems.map(x => '<button class="small alt" data-rp="' + x.i + '">Replay ' + esc(x.e.name) + '</button>').join(' ') +
-    '</div>';
+
+// ---------- audio with fallback voice & browser TTS backup ----------
+function playAudioBase64(b64) {
+  return new Promise((resolve, reject) => {
+    const au = new Audio('data:audio/mp3;base64,' + b64);
+    au.onended = () => resolve();
+    au.onerror = () => reject(new Error('Audio playback failed'));
+    au.play().then(resolve).catch(reject);
+  });
+}
+function speakBrowserFallback(text, gender) {
+  if (!('speechSynthesis' in window)) return false;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = Math.max(0.7, Math.min(1.3, +cfg.speech_rate || 0.9));
+    const voices = window.speechSynthesis.getVoices() || [];
+    const enVoices = voices.filter(v => /en/i.test(v.lang));
+    const matched = enVoices.find(v => gender === 'female' ? /female|zira|samantha|victoria|aria|jenny/i.test(v.name) : /male|david|mark|alex|daniel|guy|ryan/i.test(v.name)) || enVoices[0];
+    if (matched) u.voice = matched;
+    window.speechSynthesis.speak(u);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
-// ---------- audio ----------
-async function speak(e) {
-  const voice = voiceForAvatar({ voice: e.voice, gender: e.gender }, e.name);
+async function speak(e, opts = {}) {
+  const primaryVoice = voiceForAvatar({ voice: e.voice, gender: e.gender }, e.name);
+  const fallbackVoice = e.gender === 'female' ? 'longanhuan_v3.1' : 'longanyang_v3.1';
+  const candidates = primaryVoice === fallbackVoice ? [primaryVoice] : [primaryVoice, fallbackVoice];
+
   if (!e.audio) {
-    try { e.audio = (await post('/tts', { text: e.text, voice, rate: +cfg.speech_rate })).audio_base64; $('tts').textContent = ''; }
-    catch (err) { $('tts').textContent = 'Voice error: ' + err.message; return; }
+    let lastErr = null;
+    for (const v of candidates) {
+      try {
+        const res = await post('/tts', { text: e.text, voice: v, rate: +cfg.speech_rate });
+        if (res && res.audio_base64) {
+          e.audio = res.audio_base64;
+          e.voice = v;
+          $('tts').textContent = '';
+          break;
+        }
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    if (!e.audio) {
+      const usedBrowser = speakBrowserFallback(e.text, e.gender);
+      $('tts').textContent = usedBrowser
+        ? 'Using browser voice backup (' + (lastErr ? lastErr.message : 'TTS fallback') + ')'
+        : 'Voice error: ' + (lastErr ? lastErr.message : 'TTS failed');
+      return;
+    }
   }
-  new Audio('data:audio/mp3;base64,' + e.audio).play().catch(() => {});
+
+  try {
+    await playAudioBase64(e.audio);
+    $('tts').textContent = '';
+  } catch (err) {
+    if (opts.force) speakBrowserFallback(e.text, e.gender);
+    $('tts').textContent = 'Audio play notice: ' + err.message;
+  }
 }
+
 let rec, chunks, stream;
 async function startRec() {
   stream = stream || await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -311,7 +372,7 @@ function humanSpeak(title, phaseLabel, activeName) {
     view('<h2>' + esc(title) + '</h2>' +
       '<button id="mic">Hold to speak English</button><div class="st" id="st">Press and hold the yellow button, speak, then let go.</div>' +
       '<textarea id="tx" placeholder="Your words appear here. You can also type."></textarea><button id="ok">Confirm</button>' +
-      replayButtons() + playerBoard(activeName, phaseLabel));
+      playerBoard(activeName, phaseLabel));
     const st = t => $('st').textContent = t, mic = $('mic');
     let holding = false;
 
@@ -387,7 +448,6 @@ function lobby() {
     }
 
     const picked = Array.from({ length: hCount }, (_, idx) => AVATAR_POOL[idx % AVATAR_POOL.length].id);
-    // Ensure distinct initial picks when possible
     const seenInit = new Set();
     for (let i = 0; i < picked.length; i++) {
       if (seenInit.has(picked[i])) {
@@ -431,7 +491,6 @@ function lobby() {
           const hIdx = +btn.dataset.h;
           const avId = btn.dataset.av;
           if (picked.some((id, idx) => idx !== hIdx && id === avId)) return;
-          // Preserve typed names across re-render
           const savedNames = [...document.querySelectorAll('.nm')].map(inp => inp.value);
           picked[hIdx] = avId;
           renderLobby('');
@@ -490,7 +549,6 @@ async function play(humanNames, humanAvatarIds) {
   for (let i = 0; i < (cfg.ai_count || 0); i++) {
     const av = remainingAvatars[i] || AVATAR_POOL.find(a => !usedAvatarIds.has(a.id)) || AVATAR_POOL[i % AVATAR_POOL.length];
     usedAvatarIds.add(av.id);
-    // Avoid name collision with human players
     let aiName = av.defaultName;
     if (humanObjs.some(h => h.name.toLowerCase() === aiName.toLowerCase())) {
       aiName = aiName + ' AI';
@@ -512,7 +570,6 @@ async function play(humanNames, humanAvatarIds) {
   S = { players: ps, hist: [], cWord, uWord };
   drawScores();
 
-  // Pass-and-play secret cards: tap card to reveal word, then hide & pass
   for (const p of ps.filter(p => !p.ai)) {
     await wait('<h2>' + esc(p.name) + ', this card is for you</h2><p>Nobody else should look.</p><button data-go="y">I am ' + esc(p.name) + '</button>');
     view('<h2>' + esc(p.name) + '</h2><div class="card" id="card">Tap to see your word</div><button data-go="h">Hide the card</button>');
@@ -545,7 +602,6 @@ async function turn(p, round, kind) {
   const phase = kind === 'defend' ? ('Round ' + round + ' · Defence') : ('Round ' + round + ' · Clue');
   let text;
   if (p.ai) {
-    // Auto-generated by AI; humans cannot edit or override AI lines
     view('<h2>' + esc(p.name) + ' is generating a line...</h2>' + playerBoard(p.name, phase));
     text = (await post('/ai/speak', {
       name: p.name,
@@ -558,8 +614,8 @@ async function turn(p, round, kind) {
     })).content;
     const e = { round, name: p.name, text, ai: true, voice: p.voice, gender: p.gender, kind };
     S.hist.push(e);
+    await wait('<h2>' + esc(p.name) + ' says:</h2><button data-go="n">Next</button>' + playerBoard(p.name, phase));
     speak(e);
-    await wait('<h2>' + esc(p.name) + ' says:</h2><button data-go="n">Next</button>' + replayButtons() + playerBoard(p.name, phase));
   } else {
     text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name, phase, p.name);
     const e = { round, name: p.name, text, ai: false, voice: p.voice, gender: p.gender, kind };
@@ -580,12 +636,12 @@ async function vote(cands, round, second) {
       target = r.target;
       const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + r.reason, ai: true, voice: v.voice, gender: v.gender, kind: 'vote' };
       S.hist.push(e);
+      await wait('<h2>' + esc(v.name) + ' votes</h2><button data-go="n">Next</button>' + playerBoard(v.name, phase));
       speak(e);
-      await wait('<h2>' + esc(v.name) + ' votes</h2><button data-go="n">Next</button>' + replayButtons() + playerBoard(v.name, phase));
     } else {
       target = await wait('<h2>' + esc(v.name) + ', who is the undercover?</h2>' +
         '<div class="grid">' + opts.map(o => '<button data-go="' + esc(o.name) + '">' + esc(o.name) + '</button>').join('') + '</div>' +
-        replayButtons() + playerBoard(v.name, phase));
+        playerBoard(v.name, phase));
     }
     tally[target]++;
   }
