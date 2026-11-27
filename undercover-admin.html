@@ -120,7 +120,7 @@ function must(r) { if (r.error) throw new Error(r.error.message || JSON.stringif
 
 function start() {
   try {
-    app = cloudbase.init({ env: CFG.ENV, accessKey: CFG.KEY, region: "ap-shanghai" });
+    app = (cloudbase.init ? cloudbase : cloudbase.default).init({ env: CFG.ENV, accessKey: CFG.KEY, region: "ap-shanghai" });
     auth = typeof app.auth === 'function' ? app.auth({ persistence: 'local' }) : app.auth;
     db = app.rdb();
   } catch (e) { msg('Could not start the database connection: ' + e.message, true); }
