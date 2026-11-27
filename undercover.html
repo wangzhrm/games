@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Undercover</title>
+<script src="https://static.cloudbase.net/cloudbase-js-sdk/2.20.6/cloudbase.full.js"></script>
+<style>
+:root{--bg:#fff7e6;--ink:#1d2b2a;--teal:#1f6f6b;--sun:#f0b429;--card:#fff;--line:#e6d9bb;--bad:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:20px/1.45 "Trebuchet MS","Segoe UI",sans-serif;-webkit-user-select:none;user-select:none}
+header{background:var(--teal);color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{margin:0;font-size:24px}
+#score{font-size:16px;display:flex;gap:12px;flex-wrap:wrap}
+#score span{background:rgba(255,255,255,.18);padding:2px 10px;border-radius:12px}
+main{max-width:860px;margin:0 auto;padding:18px}
+h2{margin:6px 0 12px}
+button{font:inherit;padding:14px 22px;border:0;border-radius:12px;background:var(--teal);color:#fff;margin:6px 6px 6px 0;cursor:pointer;touch-action:manipulation}
+button.alt{background:#fff;color:var(--teal);border:2px solid var(--teal)}
+button.sun{background:var(--sun);color:var(--ink)}
+button.small{padding:4px 10px;font-size:16px;margin:0 0 0 8px}
+:focus-visible{outline:4px solid var(--sun);outline-offset:2px}
+.card{background:var(--card);border:3px dashed var(--teal);border-radius:20px;min-height:200px;display:flex;align-items:center;justify-content:center;font-size:40px;text-align:center;margin:12px 0;padding:16px;cursor:pointer}
+.card.up{border-style:solid;background:#e8f4f2}
+.log{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 14px;margin:10px 0;max-height:240px;overflow:auto;font-size:18px}
+.log p{margin:4px 0}
+textarea{width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;min-height:70px;user-select:text;-webkit-user-select:text}
+#mic{background:var(--sun);color:var(--ink);width:100%;padding:26px;font-size:24px}
+#mic.on{background:var(--bad);color:#fff}
+.st{min-height:28px;color:var(--teal)}
+.err{color:var(--bad);font-weight:bold}
+.grid{display:flex;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header><h1>Undercover</h1><div id="score"></div></header>
+<main id="main">Loading...</main>
+<script>
+const CFG = {
+  ENV: "civil-prawn-d0gflguvzee35fad8",
+  KEY: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw",
+  API: "https://civil-prawn-d0gflguvzee35fad8-1395372774.ap-shanghai.app.tcloudbase.com/undercover-api"
+};
+// One voice per AI player. Only one voice name is known so far; replace entries with other English voices once you find them.
+const VOICES = ["longanhuan_v3.1", "longanhuan_v3.1", "longanhuan_v3.1", "longanhuan_v3.1", "longanhuan_v3.1", "longanhuan_v3.1", "longanhuan_v3.1"];
+const AI_NAMES = ["Mia", "Leo", "Zoe", "Max", "Amy", "Ben", "Eva"];
+const $ = id => document.getElementById(id);
+let db, cfg, pairs = [], used = new Set(), S, scores = {};
+try { scores = JSON.parse(localStorage.getItem('uc_scores') || '{}'); } catch (e) {}
+
+const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+async function post(path, body) {
+  const r = await fetch(CFG.API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (j.error) throw new Error(j.error);
+  return j;
+}
+function drawScores() {
+  $('score').innerHTML = Object.keys(scores).map(n => '<span>' + esc(n) + ': ' + scores[n] + '</span>').join('');
+}
+function addScore(name, n) {
+  scores[name] = (scores[name] || 0) + n;
+  try { localStorage.setItem('uc_scores', JSON.stringify(scores)); } catch (e) {}
+  drawScores();
+}
+
+// ---------- screens ----------
+function view(h) {
+  $('main').innerHTML = h;
+  $('main').querySelectorAll('[data-rp]').forEach(b => b.onclick = () => speak(S.hist[+b.dataset.rp]));
+}
+function wait(h) {
+  return new Promise(res => { view(h); $('main').querySelectorAll('[data-go]').forEach(b => b.onclick = () => res(b.dataset.go)); });
+}
+function transcript() {
+  const rows = S.hist.map((e, i) => e.kind === 'vote' ? '' :
+    '<p>' + (e.kind === 'defend' ? 'Defence' : 'Round ' + e.round) + ' - <b>' + esc(e.name) + '</b>: ' + esc(e.text) +
+    (e.ai ? '<button class="small alt" data-rp="' + i + '" aria-label="Play again">Play again</button>' : '') + '</p>').join('');
+  return '<div class="log">' + (rows || '<p>No clues yet.</p>') + '</div>';
+}
+
+// ---------- audio ----------
+async function speak(e) {
+  if (!e.audio) {
+    try { e.audio = (await post('/tts', { text: e.text, voice: e.voice, rate: +cfg.speech_rate })).audio_base64; }
+    catch (err) { console.warn('TTS failed', err); return; }
+  }
+  new Audio('data:audio/mp3;base64,' + e.audio).play().catch(() => {});
+}
+let rec, chunks, stream;
+async function startRec() {
+  stream = stream || await navigator.mediaDevices.getUserMedia({ audio: true });
+  chunks = []; rec = new MediaRecorder(stream);
+  rec.ondataavailable = e => chunks.push(e.data);
+  rec.start();
+}
+const stopRec = () => new Promise(r => { rec.onstop = () => r(new Blob(chunks)); rec.stop(); });
+async function wavB64(blob) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+  const oc = new OfflineAudioContext(1, Math.max(1, Math.ceil(buf.duration * 16000)), 16000);
+  const src = oc.createBufferSource(); src.buffer = buf; src.connect(oc.destination); src.start();
+  const d = (await oc.startRendering()).getChannelData(0), n = d.length;
+  const v = new DataView(new ArrayBuffer(44 + n * 2)), w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) { const s = Math.max(-1, Math.min(1, d[i])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+  const u = new Uint8Array(v.buffer); let b = '';
+  for (let i = 0; i < u.length; i += 8192) b += String.fromCharCode.apply(null, u.subarray(i, i + 8192));
+  return btoa(b);
+}
+
+// ---------- human speech: hold to talk, check text, confirm ----------
+function humanSpeak(title) {
+  return new Promise(res => {
+    view('<h2>' + esc(title) + '</h2>' + transcript() +
+      '<button id="mic">Hold to speak English</button><div class="st" id="st">Press and hold the yellow button, speak, then let go.</div>' +
+      '<textarea id="tx" placeholder="Your words appear here. You can also type."></textarea><button id="ok">Confirm</button>');
+    const st = t => $('st').textContent = t, mic = $('mic');
+    mic.onpointerdown = async e => {
+      try { mic.setPointerCapture(e.pointerId); await startRec(); mic.classList.add('on'); st('Listening... let go when you finish.'); }
+      catch (err) { st('Microphone problem: ' + err.message + '. You can type instead.'); }
+    };
+    mic.onpointerup = async () => {
+      mic.classList.remove('on');
+      if (!rec || rec.state !== 'recording') return;
+      st('Recognising...');
+      try {
+        const r = await post('/asr', { audio_base64: await wavB64(await stopRec()) });
+        $('tx').value = r.text || '';
+        st(r.text ? 'Check the words. Fix them if needed, then press Confirm.' : 'Nothing recognised. Try again or type.');
+      } catch (err) { st('Could not recognise (' + err.message + '). You can type instead.'); }
+    };
+    $('ok').onclick = () => { const t = $('tx').value.trim(); if (t) res(t); else st('Say or type something first.'); };
+  });
+}
+
+// ---------- game ----------
+const alive = () => S.players.filter(p => p.alive);
+const hist4ai = () => S.hist.filter(e => e.kind !== 'vote').map(e => ({ round: e.round, name: e.name, text: e.text }));
+
+async function loadAll() {
+  const app = cloudbase.init({ env: CFG.ENV, accessKey: CFG.KEY, region: 'ap-shanghai' });
+  const auth = typeof app.auth === 'function' ? app.auth({ persistence: 'local' }) : app.auth;
+  try { await auth.signInAnonymously(); } catch (e) {}
+  db = app.rdb();
+  const s = await db.from('settings').select('*').eq('id', 1);
+  if (s.error) throw new Error(s.error.message);
+  cfg = s.data[0];
+  const w = await db.from('word_pairs').select('*');
+  if (w.error) throw new Error(w.error.message);
+  pairs = w.data;
+}
+
+async function lobby() {
+  await loadAll();
+  const total = cfg.human_count + cfg.ai_count;
+  if (total < 3 || total > 8 || cfg.undercover_count > Math.floor((total - 1) / 2) || !pairs.length)
+    return view('<h2>Not ready</h2><p class="err">Ask your teacher to check the settings and word list in the admin page.</p><button data-go="x" onclick="start()">Try again</button>');
+  let names = '';
+  for (let i = 0; i < cfg.human_count; i++) names += '<p>Player ' + (i + 1) + ': <input class="nm" value="Player ' + (i + 1) + '" maxlength="12" style="font:inherit;padding:6px"></p>';
+  await wait('<h2>New game</h2><p>' + cfg.human_count + ' human and ' + cfg.ai_count + ' AI players, ' + cfg.undercover_count + ' undercover.</p>' + names +
+    '<button data-go="go">Start</button><button class="alt" data-go="reset">Reset scores</button>').then(async a => {
+    if (a === 'reset') { scores = {}; try { localStorage.removeItem('uc_scores'); } catch (e) {} drawScores(); return lobby(); }
+    const hs = [...document.querySelectorAll('.nm')].map((i, k) => i.value.trim() || 'Player ' + (k + 1));
+    if (new Set(hs).size < hs.length) return lobby();
+    await play(hs);
+  });
+}
+
+async function play(humanNames) {
+  let fresh = pairs.filter(p => !used.has(p.id)); if (!fresh.length) { used.clear(); fresh = pairs; }
+  const pr = fresh[Math.floor(Math.random() * fresh.length)]; used.add(pr.id);
+  const flip = Math.random() < .5, cWord = flip ? pr.word_b : pr.word_a, uWord = flip ? pr.word_a : pr.word_b;
+  const ps = shuffle([...humanNames.map(n => ({ name: n, ai: false })), ...AI_NAMES.slice(0, cfg.ai_count).map((n, i) => ({ name: n, ai: true, voice: VOICES[i] }))]);
+  const us = new Set(shuffle(ps.map((_, i) => i)).slice(0, cfg.undercover_count));
+  ps.forEach((p, i) => { p.under = us.has(i); p.word = p.under ? uWord : cWord; p.alive = true; if (!(p.name in scores)) scores[p.name] = 0; });
+  S = { players: ps, hist: [], cWord, uWord };
+  drawScores();
+
+  for (const p of ps.filter(p => !p.ai)) {   // secret cards
+    await wait('<h2>' + esc(p.name) + ', this card is for you</h2><p>Nobody else should look.</p><button data-go="y">I am ' + esc(p.name) + '</button>');
+    view('<h2>' + esc(p.name) + '</h2><div class="card" id="card">Tap to see your word</div><button data-go="h">Hide the card</button>');
+    $('card').onclick = () => { $('card').textContent = p.word; $('card').classList.add('up'); };
+    await new Promise(r => $('main').querySelector('[data-go]').onclick = r);
+  }
+
+  for (let round = 1; ; round++) {
+    for (const p of alive()) await turn(p, round, 'clue');
+    let cands = alive(), res = await vote(cands, round);
+    if (res.tie) {
+      for (const p of res.tie) await turn(p, round, 'defend');
+      res = await vote(res.tie, round, true);
+    }
+    if (res.out) {
+      res.out.alive = false;
+      await wait('<h2>' + esc(res.out.name) + ' is out!</h2><p>Their word was <b>' + esc(res.out.word) + '</b>. They were ' + (res.out.under ? 'an UNDERCOVER' : 'a civilian') + '.</p><button data-go="n">Continue</button>');
+    } else await wait('<h2>Tie again</h2><p>Nobody goes out this round.</p><button data-go="n">Continue</button>');
+    const u = alive().filter(p => p.under).length, c = alive().length - u;
+    if (u === 0) return finish('civilians');
+    if (c <= u) return finish('undercovers');
+  }
+}
+
+async function turn(p, round, kind) {
+  let text;
+  if (p.ai) {
+    view('<h2>' + esc(p.name) + ' is thinking...</h2>' + transcript());
+    text = (await post('/ai/speak', { name: p.name, word: p.word, level: cfg.difficulty, players: S.players.length, undercovers: cfg.undercover_count, history: hist4ai(), mode: kind === 'defend' ? 'defend' : 'speak' })).content;
+  } else text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name);
+  const e = { round, name: p.name, text, ai: p.ai, voice: p.voice, kind };
+  S.hist.push(e);
+  if (p.ai) { speak(e); await wait('<h2>' + esc(p.name) + ' says:</h2>' + transcript() + '<button data-go="n">Next</button>'); }
+}
+
+async function vote(cands, round, second) {
+  const tally = {};
+  cands.forEach(c => tally[c.name] = 0);
+  for (const v of alive()) {
+    const opts = cands.filter(c => c !== v); if (!opts.length) continue;
+    let target;
+    if (v.ai) {
+      view('<h2>' + esc(v.name) + ' is voting...</h2>' + transcript());
+      const r = await post('/ai/vote', { name: v.name, word: v.word, history: hist4ai(), candidates: opts.map(o => o.name) });
+      target = r.target;
+      const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + r.reason, ai: true, voice: v.voice, kind: 'vote' };
+      S.hist.push(e); speak(e);
+      await wait('<h2>' + esc(v.name) + ' votes</h2><p>' + esc(e.text) + '</p><button data-go="n">Next</button>');
+    } else {
+      target = await wait('<h2>' + esc(v.name) + ', who is the undercover?</h2>' + transcript() + '<div class="grid">' +
+        opts.map(o => '<button data-go="' + esc(o.name) + '">' + esc(o.name) + '</button>').join('') + '</div>');
+    }
+    tally[target]++;
+  }
+  const max = Math.max(...Object.values(tally)), top = cands.filter(c => tally[c.name] === max);
+  await wait('<h2>' + (second ? 'Second vote' : 'Votes') + '</h2><p>' + cands.map(c => esc(c.name) + ': ' + tally[c.name]).join('<br>') + '</p><button data-go="n">Continue</button>');
+  if (top.length === 1) return { out: top[0] };
+  return second ? { out: null } : { tie: top };
+}
+
+async function finish(winner) {
+  const pts = [];
+  S.players.forEach(p => { const win = winner === 'civilians' ? !p.under : p.under; if (win) { const n = p.under ? 4 : 2; addScore(p.name, n); pts.push(esc(p.name) + ' +' + n); } });
+  await wait('<h2>' + (winner === 'civilians' ? 'Civilians win!' : 'Undercovers win!') + '</h2><p>Civilian word: <b>' + esc(S.cWord) + '</b><br>Undercover word: <b>' + esc(S.uWord) +
+    '</b></p><p>Undercover: ' + S.players.filter(p => p.under).map(p => esc(p.name)).join(', ') + '</p><p>Points: ' + (pts.join(', ') || 'none') + '</p><button data-go="n">Next game</button>');
+  start();
+}
+
+async function start() {
+  try { await lobby(); }
+  catch (e) { await wait('<h2>Something went wrong</h2><p class="err">' + esc(e.message || String(e)) + '</p><button data-go="r">Start again</button>'); start(); }
+}
+drawScores();
+start();
+</script>
+</body>
+</html>

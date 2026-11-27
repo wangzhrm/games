@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Undercover Admin</title>
+<script src="https://static.cloudbase.net/cloudbase-js-sdk/2.20.6/cloudbase.full.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f3f5f2;--card:#fff;--ink:#1d2b2a;--mute:#5d6b69;--line:#d6ddda;--accent:#1f6f6b;--bad:#b3261e;--ok:#1f7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Trebuchet MS","Segoe UI",sans-serif}
+header{background:var(--ink);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:20px;letter-spacing:.3px}
+main{max-width:980px;margin:0 auto;padding:16px}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+h2{margin:0 0 10px;font-size:18px}
+label{display:inline-flex;flex-direction:column;font-size:14px;color:var(--mute);margin:0 12px 10px 0;gap:3px}
+input,select,button{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
+input[type=checkbox]{width:18px;height:18px;padding:0}
+button{background:var(--accent);color:#fff;border-color:var(--accent);cursor:pointer}
+button.ghost{background:#fff;color:var(--accent)}
+button.danger{background:#fff;color:var(--bad);border-color:var(--bad)}
+button:disabled{opacity:.5;cursor:wait}
+:focus-visible{outline:3px solid #f0b429;outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;align-items:flex-end}
+.inline{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:16px}
+#msg{min-height:24px;font-weight:600}.ok{color:var(--ok)}.bad{color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mute);font-weight:600;font-size:14px}
+.scroll{max-height:340px;overflow:auto}
+.hint{color:var(--mute);font-size:14px;margin:4px 0 10px}
+#login{max-width:360px;margin:60px auto}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header><h1>Undercover Admin</h1><button id="out" class="ghost hide">Log out</button></header>
+<main>
+<div id="msg" role="status"></div>
+
+<section id="login">
+  <h2>Teacher login</h2>
+  <label>Username<input id="u" autocomplete="username"></label><br>
+  <label>Password<input id="p" type="password" autocomplete="current-password"></label><br>
+  <button id="go">Log in</button>
+</section>
+
+<div id="app" class="hide">
+<section>
+  <h2>Class settings</h2>
+  <div class="row">
+    <label>Human players<input id="s_h" type="number" min="1" max="8" style="width:90px"></label>
+    <label>AI players<input id="s_a" type="number" min="0" max="7" style="width:90px"></label>
+    <label>Undercovers<select id="s_u"><option>1</option><option>2</option></select></label>
+    <label>AI player level<select id="s_d"><option value="easy">Easy (primary)</option><option value="normal">Normal (middle school)</option><option value="hard">Hard (advanced)</option></select></label>
+    <label>AI voice speed <span id="rv"></span><input id="s_r" type="range" min="0.6" max="1.2" step="0.05"></label>
+  </div>
+  <div class="hint" id="total"></div>
+  <button id="saveS">Save settings</button>
+</section>
+
+<section>
+  <h2>Add words</h2>
+  <div class="row">
+    <label>Undercover difficulty for new pairs
+      <select id="diff"><option value="easy">Easy: words very different</option><option value="normal" selected>Normal: same category</option><option value="hard">Hard: almost the same</option></select></label>
+  </div>
+  <h3 style="font-size:16px;margin:6px 0">Type one pair</h3>
+  <div class="row">
+    <label>Word A<input id="wa"></label><label>Word B<input id="wb"></label>
+    <label>&nbsp;<button id="addOne">Add pair</button></label>
+  </div>
+  <h3 style="font-size:16px;margin:6px 0">Import from Excel</h3>
+  <div class="hint">No header row. Word A in column 1, word B in column 2. .xlsx, .xls and .csv work.</div>
+  <input id="xl" type="file" accept=".xlsx,.xls,.csv">
+  <h3 style="font-size:16px;margin:14px 0 6px"><label class="inline"><input id="useAI" type="checkbox"> Generate words with AI</label></h3>
+  <div id="aiBox" class="row hide">
+    <label>Theme<input id="theme" placeholder="animals, food, jobs..."></label>
+    <label>Pairs<input id="cnt" type="number" min="1" max="20" value="8" style="width:80px"></label>
+    <label>&nbsp;<button id="gen">Generate</button></label>
+  </div>
+</section>
+
+<section>
+  <h2>New AI pairs waiting for your decision</h2>
+  <div class="hint">Students cannot see these yet. Tick the ones you like and save them, or delete the rest.</div>
+  <div class="scroll"><table id="pend"></table></div>
+  <p><button id="keep">Save ticked pairs</button> <button id="delPend" class="danger">Delete ticked pairs</button></p>
+</section>
+
+<section>
+  <h2>Word library <span id="count" class="hint"></span></h2>
+  <div class="scroll"><table id="lib"></table></div>
+  <p><button id="delLib" class="danger">Delete ticked pairs</button></p>
+</section>
+</div>
+</main>
+
+<script>
+// ---- Edit these three lines ----
+const CFG = {
+  ENV: "civil-prawn-d0gflguvzee35fad8",
+  KEY: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw",
+  API: "https://civil-prawn-d0gflguvzee35fad8-1395372774.ap-shanghai.app.tcloudbase.com/undercover-api"
+};
+// --------------------------------
+const $ = id => document.getElementById(id);
+let app, auth, db, words = [];
+
+function msg(t, bad) { $('msg').textContent = t; $('msg').className = bad ? 'bad' : 'ok'; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+async function guard(btn, fn) {
+  btn.disabled = true;
+  try { await fn(); } catch (e) { msg((e && e.message) || String(e), true); }
+  btn.disabled = false;
+}
+function must(r) { if (r.error) throw new Error(r.error.message || JSON.stringify(r.error)); return r.data; }
+
+function start() {
+  try {
+    app = cloudbase.init({ env: CFG.ENV, accessKey: CFG.KEY, region: "ap-shanghai" });
+    auth = typeof app.auth === 'function' ? app.auth({ persistence: 'local' }) : app.auth;
+    db = app.rdb();
+  } catch (e) { msg('Could not start the database connection: ' + e.message, true); }
+}
+
+$('go').onclick = () => guard($('go'), async () => {
+  const username = $('u').value.trim(), password = $('p').value;
+  const r = auth.signInWithPassword ? await auth.signInWithPassword({ username, password }) : await auth.signIn({ username, password });
+  if (r && r.error) throw new Error('Login failed: ' + r.error.message);
+  $('login').classList.add('hide'); $('app').classList.remove('hide'); $('out').classList.remove('hide');
+  msg('');
+  await loadSettings(); await loadWords();
+});
+$('p').onkeydown = e => { if (e.key === 'Enter') $('go').click(); };
+$('out').onclick = async () => { try { await auth.signOut(); } catch (e) {} location.reload(); };
+
+// ---- settings ----
+function checkTotal() {
+  const t = +$('s_h').value + +$('s_a').value, u = +$('s_u').value;
+  const ok = t >= 3 && t <= 8 && u <= Math.floor((t - 1) / 2);
+  $('total').textContent = 'Total players: ' + t + (ok ? '' : '. Needs 3 to 8 players, and 2 undercovers needs at least 5 players.');
+  $('total').className = 'hint ' + (ok ? '' : 'bad');
+  $('rv').textContent = $('s_r').value + 'x';
+  return ok;
+}
+['s_h', 's_a', 's_u', 's_r'].forEach(i => $(i).oninput = checkTotal);
+async function loadSettings() {
+  const d = must(await db.from('settings').select('*').eq('id', 1))[0];
+  if (!d) return;
+  $('s_h').value = d.human_count; $('s_a').value = d.ai_count; $('s_u').value = d.undercover_count;
+  $('s_d').value = d.difficulty; $('s_r').value = d.speech_rate; checkTotal();
+}
+$('saveS').onclick = () => guard($('saveS'), async () => {
+  if (!checkTotal()) throw new Error('Please fix the player numbers first.');
+  must(await db.from('settings').update({
+    human_count: +$('s_h').value, ai_count: +$('s_a').value, undercover_count: +$('s_u').value,
+    difficulty: $('s_d').value, speech_rate: +$('s_r').value, updated_at: new Date().toISOString()
+  }).eq('id', 1));
+  msg('Settings saved.');
+});
+
+// ---- words ----
+function tableHTML(rows) {
+  if (!rows.length) return '<tr><td>Nothing here yet.</td></tr>';
+  return '<tr><th></th><th>Word A</th><th>Word B</th><th>Difficulty</th><th>Source</th></tr>' + rows.map(w =>
+    '<tr><td><input type="checkbox" value="' + w.id + '" aria-label="select"></td><td>' + esc(w.word_a) + '</td><td>' + esc(w.word_b) +
+    '</td><td>' + w.difficulty + '</td><td>' + w.source + '</td></tr>').join('');
+}
+async function loadWords() {
+  words = must(await db.from('word_pairs').select('*').order('id', { ascending: false }));
+  $('pend').innerHTML = tableHTML(words.filter(w => !w.saved));
+  const lib = words.filter(w => w.saved);
+  $('lib').innerHTML = tableHTML(lib);
+  $('count').textContent = '(' + lib.length + ' pairs)';
+}
+function ticked(tableId) { return [...document.querySelectorAll('#' + tableId + ' input:checked')].map(c => +c.value); }
+
+async function addPairs(pairs, source, saved) {
+  const known = new Set(words.flatMap(w => [w.word_a + '|' + w.word_b, w.word_b + '|' + w.word_a]));
+  const rows = [];
+  for (const p of pairs) {
+    const a = String(p.a).trim().toLowerCase(), b = String(p.b).trim().toLowerCase();
+    if (!a || !b || a === b || known.has(a + '|' + b)) continue;
+    known.add(a + '|' + b); known.add(b + '|' + a);
+    rows.push({ word_a: a, word_b: b, source, difficulty: $('diff').value, saved });
+  }
+  if (rows.length) must(await db.from('word_pairs').insert(rows));
+  await loadWords();
+  msg('Added ' + rows.length + ' new pair(s)' + (pairs.length - rows.length ? ', skipped ' + (pairs.length - rows.length) + ' duplicate or empty.' : '.'));
+}
+
+$('addOne').onclick = () => guard($('addOne'), async () => {
+  await addPairs([{ a: $('wa').value, b: $('wb').value }], 'manual', true);
+  $('wa').value = ''; $('wb').value = '';
+});
+$('xl').onchange = e => guard($('addOne'), async () => {
+  const f = e.target.files[0]; if (!f) return;
+  const wb = XLSX.read(await f.arrayBuffer());
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+  await addPairs(rows.filter(r => r[0] && r[1]).map(r => ({ a: r[0], b: r[1] })), 'excel', true);
+  e.target.value = '';
+});
+$('useAI').onchange = () => $('aiBox').classList.toggle('hide', !$('useAI').checked);
+$('gen').onclick = () => guard($('gen'), async () => {
+  msg('Asking the AI. This takes a few seconds...');
+  const existing = words.flatMap(w => [w.word_a, w.word_b]).slice(0, 80);
+  const r = await fetch(CFG.API + '/ai/words', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ count: +$('cnt').value, theme: $('theme').value, difficulty: $('diff').value, existing })
+  });
+  const j = await r.json();
+  if (j.error) throw new Error('AI error: ' + j.error);
+  await addPairs(j.pairs, 'ai', false);
+});
+
+$('keep').onclick = () => guard($('keep'), async () => {
+  const ids = ticked('pend'); if (!ids.length) throw new Error('Tick at least one pair first.');
+  must(await db.from('word_pairs').update({ saved: true }).in('id', ids)); await loadWords(); msg('Saved ' + ids.length + ' pair(s).');
+});
+async function del(tableId, btn) {
+  guard(btn, async () => {
+    const ids = ticked(tableId); if (!ids.length) throw new Error('Tick at least one pair first.');
+    if (!confirm('Delete ' + ids.length + ' pair(s)?')) return;
+    must(await db.from('word_pairs').delete().in('id', ids)); await loadWords(); msg('Deleted ' + ids.length + ' pair(s).');
+  });
+}
+$('delPend').onclick = () => del('pend', $('delPend'));
+$('delLib').onclick = () => del('lib', $('delLib'));
+
+start();
+</script>
+</body>
+</html>
