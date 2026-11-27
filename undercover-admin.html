@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Undercover Admin</title>
-<script src="https://static.cloudbase.net/cloudbase-js-sdk/2.20.6/cloudbase.full.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{--bg:#f3f5f2;--card:#fff;--ink:#1d2b2a;--mute:#5d6b69;--line:#d6ddda;--accent:#1f6f6b;--bad:#b3261e;--ok:#1f7a3d}
@@ -107,7 +106,7 @@ const CFG = {
 };
 // --------------------------------
 const $ = id => document.getElementById(id);
-let app, auth, db, words = [];
+let TOKEN = CFG.KEY, words = [];
 
 function msg(t, bad) { $('msg').textContent = t; $('msg').className = bad ? 'bad' : 'ok'; }
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
@@ -118,24 +117,46 @@ async function guard(btn, fn) {
 }
 function must(r) { if (r.error) throw new Error(r.error.message || JSON.stringify(r.error)); return r.data; }
 
-function start() {
-  try {
-    app = (cloudbase.init ? cloudbase : cloudbase.default).init({ env: CFG.ENV, accessKey: CFG.KEY, region: "ap-shanghai" });
-    auth = typeof app.auth === 'function' ? app.auth({ persistence: 'local' }) : app.auth;
-    db = app.rdb();
-  } catch (e) { msg('Could not start the database connection: ' + e.message, true); }
+const BASE = 'https://' + CFG.ENV + '.api.tcloudbasegateway.com';
+async function run(q) {
+  const r = await fetch(BASE + '/v1/rdb/rest/' + q.t + (q.p.length ? '?' + q.p.join('&') : ''), {
+    method: q.m, headers: { Authorization: 'Bearer ' + TOKEN, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: q.body ? JSON.stringify(q.body) : undefined });
+  const txt = await r.text(); let j = null; try { j = txt ? JSON.parse(txt) : null; } catch (e) {}
+  if (!r.ok) return { data: null, error: { message: (j && (j.message || j.error_description || j.error)) || 'HTTP ' + r.status } };
+  return { data: j, error: null };
+}
+const db = { from(t) {
+  const q = { m: 'GET', p: [], body: null, t }, o = {
+    select() { q.p.push('select=*'); return o; },
+    insert(b) { q.m = 'POST'; q.body = b; return o; },
+    update(b) { q.m = 'PATCH'; q.body = b; return o; },
+    delete() { q.m = 'DELETE'; return o; },
+    eq(c, v) { q.p.push(c + '=eq.' + v); return o; },
+    in(c, a) { q.p.push(c + '=in.(' + a.join(',') + ')'); return o; },
+    order(c, op) { q.p.push('order=' + c + '.' + (op && op.ascending === false ? 'desc' : 'asc')); return o; },
+    then(res, rej) { return run(q).then(res, rej); }
+  };
+  return o;
+} };
+async function signIn(username, password) {
+  const r = await fetch(BASE + '/auth/v1/signin', { method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-device-id': 'admin-' + Math.random().toString(36).slice(2) },
+    body: JSON.stringify({ username, password }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.access_token) throw new Error('Login failed: ' + (j.error_description || j.error || 'HTTP ' + r.status));
+  TOKEN = j.access_token;
 }
 
 $('go').onclick = () => guard($('go'), async () => {
   const username = $('u').value.trim(), password = $('p').value;
-  const r = auth.signInWithPassword ? await auth.signInWithPassword({ username, password }) : await auth.signIn({ username, password });
-  if (r && r.error) throw new Error('Login failed: ' + r.error.message);
+  await signIn(username, password);
   $('login').classList.add('hide'); $('app').classList.remove('hide'); $('out').classList.remove('hide');
   msg('');
   await loadSettings(); await loadWords();
 });
 $('p').onkeydown = e => { if (e.key === 'Enter') $('go').click(); };
-$('out').onclick = async () => { try { await auth.signOut(); } catch (e) {} location.reload(); };
+$('out').onclick = () => location.reload();
 
 // ---- settings ----
 function checkTotal() {
@@ -230,7 +251,6 @@ async function del(tableId, btn) {
 $('delPend').onclick = () => del('pend', $('delPend'));
 $('delLib').onclick = () => del('lib', $('delLib'));
 
-start();
 </script>
 </body>
 </html>
