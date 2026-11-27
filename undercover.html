@@ -12,23 +12,38 @@ header{background:var(--teal);color:#fff;padding:10px 18px;display:flex;justify-
 header h1{margin:0;font-size:24px}
 #score{font-size:16px;display:flex;gap:12px;flex-wrap:wrap}
 #score span{background:rgba(255,255,255,.18);padding:2px 10px;border-radius:12px}
-main{max-width:860px;margin:0 auto;padding:18px}
+main{max-width:960px;margin:0 auto;padding:18px}
 h2{margin:6px 0 12px}
 button{font:inherit;padding:14px 22px;border:0;border-radius:12px;background:var(--teal);color:#fff;margin:6px 6px 6px 0;cursor:pointer;touch-action:manipulation}
 button.alt{background:#fff;color:var(--teal);border:2px solid var(--teal)}
 button.sun{background:var(--sun);color:var(--ink)}
-button.small{padding:4px 10px;font-size:16px;margin:0 0 0 8px}
+button.small{padding:4px 10px;font-size:15px;margin:6px 0 0 0}
 :focus-visible{outline:4px solid var(--sun);outline-offset:2px}
 .card{background:var(--card);border:3px dashed var(--teal);border-radius:20px;min-height:200px;display:flex;align-items:center;justify-content:center;font-size:40px;text-align:center;margin:12px 0;padding:16px;cursor:pointer}
 .card.up{border-style:solid;background:#e8f4f2}
-.log{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 14px;margin:10px 0;max-height:240px;overflow:auto;font-size:18px}
-.log p{margin:4px 0}
 textarea{width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;min-height:70px;user-select:text;-webkit-user-select:text}
 #mic{background:var(--sun);color:var(--ink);width:100%;padding:26px;font-size:24px}
 #mic.on{background:var(--bad);color:#fff}
-.st{min-height:28px;color:var(--teal)}
+.st{min-height:28px;color:var(--teal);margin:6px 0}
 .err{color:var(--bad);font-weight:bold}
 .grid{display:flex;flex-wrap:wrap}
+
+/* Sequential Comic Lineup */
+.comic-stage{background:#fffdf7;border:3px solid var(--ink);border-radius:18px;padding:14px;margin:12px 0 16px;box-shadow:0 4px 0 rgba(29,43,42,.12)}
+.comic-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;font-size:15px}
+.comic-badge{background:#eef6f4;border:1.5px solid var(--teal);color:var(--teal);padding:3px 10px;border-radius:999px;font-weight:bold}
+.comic-line{display:flex;align-items:flex-end;gap:10px;overflow-x:auto;padding:10px 4px 8px;border-bottom:4px solid var(--ink);background:linear-gradient(to bottom,transparent 72%,#f3e7c8 72%);border-radius:12px}
+.actor{flex:0 0 148px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 6px;border-radius:14px;border:2px solid transparent;transition:transform .15s,border-color .15s,background .15s}
+.actor.active{background:#fff3c4;border-color:var(--ink);transform:translateY(-4px)}
+.actor.out{opacity:.45;filter:grayscale(.75)}
+.actor-order{font-size:12px;font-weight:bold;background:var(--ink);color:#fff;border-radius:999px;padding:1px 8px;margin-bottom:4px}
+.actor-svg{width:84px;height:104px;display:block}
+.actor-name{font-size:15px;font-weight:bold;margin-top:2px}
+.actor-role{font-size:12px;color:#4f6361;margin-bottom:6px}
+.bubble{width:100%;min-height:66px;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:7px 8px;font-size:13px;line-height:1.3;text-align:left;position:relative;word-break:break-word}
+.bubble::before{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);border-width:0 7px 7px 7px;border-style:solid;border-color:transparent transparent var(--ink) transparent}
+.bubble.empty{color:#7a8786;font-style:italic}
+.bubble-meta{font-size:11px;color:#5a6b69;margin-bottom:2px;font-weight:bold}
 </style>
 </head>
 <body>
@@ -40,11 +55,38 @@ const CFG = {
   KEY: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw",
   API: "https://civil-prawn-d0gflguvzee35fad8-1395372774.ap-shanghai.app.tcloudbase.com/undercover-api"
 };
-// One voice per AI player. Only one voice name is known so far; replace entries with other English voices once you find them.
-const VOICES = ["longanhuan_v3.1", "longanhuan_v3.1", "longanhuan_v3.1", "longanhuan_v3.1", "longanhuan_v3.1", "longanhuan_v3.1", "longanhuan_v3.1"];
-const AI_NAMES = ["Mia", "Leo", "Zoe", "Max", "Amy", "Ben", "Eva"];
+
+// AI cast with explicit gender & matching Qwen-Audio-3.1 TTS voice
+const AI_CAST = [
+  { name: "Mia",  gender: "female", voice: "longanhuan_v3.1",   shirt: "#e76f51", hair: "#3b2314", style: "ponytail" },
+  { name: "Leo",  gender: "male",   voice: "xunanchuan_v3.1",   shirt: "#2a9d8f", hair: "#1f2421", style: "short" },
+  { name: "Zoe",  gender: "female", voice: "longanlingxin_v3.1",shirt: "#9b5de5", hair: "#2b193d", style: "bobs" },
+  { name: "Max",  gender: "male",   voice: "longanyang_v3.1",   shirt: "#3a86ff", hair: "#4a2c18", style: "spiky" },
+  { name: "Amy",  gender: "female", voice: "longanfengyue_v3.1",shirt: "#f15bb5", hair: "#241715", style: "pigtails" },
+  { name: "Ben",  gender: "male",   voice: "longhan_v3.1",      shirt: "#52b788", hair: "#2d2a26", style: "curly" },
+  { name: "Eva",  gender: "female", voice: "longanhuan_v3.1",   shirt: "#ff9f1c", hair: "#472817", style: "bobs" }
+];
+const FEMALE_VOICES = ["longanhuan_v3.1", "longanlingxin_v3.1", "longanfengyue_v3.1"];
+const MALE_VOICES = ["xunanchuan_v3.1", "longanyang_v3.1", "longhan_v3.1"];
+
+function guessGender(name) {
+  const n = (name || "").trim().toLowerCase();
+  if (["mia","zoe","amy","eva","anna","emma","lucy","lily","sophia","chloe","grace","ella","olivia","ruby","claire","alice","rose","nina","tina","wendy"].includes(n)) return "female";
+  if (["leo","max","ben","ryan","liam","noah","jack","oscar","sam","tom","eric","alex","daniel","lucas","henry","ethan","paul","mark","david","peter"].includes(n)) return "male";
+  if (/[aei]$/.test(n) && !["mike","luke","kyle","nate","blake","charlie","jamie"].includes(n)) return "female";
+  return "male";
+}
+function voiceForName(name, preferred) {
+  if (preferred) return preferred;
+  const g = guessGender(name);
+  const pool = g === "female" ? FEMALE_VOICES : MALE_VOICES;
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return pool[h % pool.length];
+}
+
 const $ = id => document.getElementById(id);
-let db, cfg, pairs = [], used = new Set(), S, scores = {};
+let cfg, pairs = [], used = new Set(), S, scores = {};
 try { scores = JSON.parse(localStorage.getItem('uc_scores') || '{}'); } catch (e) {}
 
 const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
@@ -64,25 +106,97 @@ function addScore(name, n) {
   drawScores();
 }
 
+// ---------- comic character & persistent speech bubbles ----------
+function avatarSvg(p, isActive) {
+  const shirt = p.shirt || (p.ai ? '#2a9d8f' : '#264653');
+  const hair = p.hair || '#2b2118';
+  const skin = '#ffd6ba';
+  const style = p.style || (p.ai ? 'short' : 'cap');
+  const mouth = isActive
+    ? '<ellipse cx="42" cy="43" rx="5" ry="4" fill="#8d2b2b"/>'
+    : '<path d="M36 42 Q42 46 48 42" stroke="#5c2c24" stroke-width="2.2" fill="none" stroke-linecap="round"/>';
+  const hairTop = style === 'ponytail'
+    ? '<path d="M24 31 C24 16, 60 16, 60 31 Z" fill="' + hair + '"/><circle cx="63" cy="25" r="7" fill="' + hair + '"/>'
+    : style === 'pigtails'
+    ? '<path d="M24 31 C24 16, 60 16, 60 31 Z" fill="' + hair + '"/><circle cx="19" cy="30" r="6.5" fill="' + hair + '"/><circle cx="65" cy="30" r="6.5" fill="' + hair + '"/>'
+    : style === 'bobs'
+    ? '<path d="M22 33 C22 15, 62 15, 62 33 L63 43 L56 43 L55 31 L29 31 L28 43 L21 43 Z" fill="' + hair + '"/>'
+    : style === 'spiky'
+    ? '<polygon points="24,28 28,13 36,21 42,11 48,21 56,14 60,28" fill="' + hair + '"/>'
+    : style === 'curly'
+    ? '<circle cx="28" cy="22" r="7" fill="' + hair + '"/><circle cx="38" cy="18" r="7.5" fill="' + hair + '"/><circle cx="48" cy="18" r="7.5" fill="' + hair + '"/><circle cx="57" cy="23" r="7" fill="' + hair + '"/>'
+    : style === 'cap'
+    ? '<path d="M24 28 C25 16, 59 16, 60 28 Z" fill="#e63946"/><rect x="23" y="25" width="44" height="4" rx="2" fill="#d62828"/>'
+    : '<path d="M24 30 C24 16, 60 16, 60 30 C54 24, 30 24, 24 30 Z" fill="' + hair + '"/>';
+
+  return '<svg class="actor-svg" viewBox="0 0 84 104" aria-hidden="true">' +
+    '<path d="M18 98 C18 72, 66 72, 66 98 Z" fill="' + shirt + '" stroke="#1d2b2a" stroke-width="2.5"/>' +
+    '<rect x="37" y="53" width="10" height="14" rx="4" fill="' + skin + '"/>' +
+    '<ellipse cx="42" cy="35" rx="17" ry="19" fill="' + skin + '" stroke="#1d2b2a" stroke-width="2.5"/>' +
+    hairTop +
+    '<circle cx="36" cy="34" r="2.4" fill="#1d2b2a"/><circle cx="48" cy="34" r="2.4" fill="#1d2b2a"/>' +
+    mouth +
+    '</svg>';
+}
+
+function latestStatement(playerName) {
+  if (!S || !S.hist) return null;
+  for (let i = S.hist.length - 1; i >= 0; i--) {
+    if (S.hist[i].name === playerName) return S.hist[i];
+  }
+  return null;
+}
+
+function comicStrip(activeName, phaseLabel) {
+  if (!S || !S.players) return '';
+  const items = S.players.map((p, idx) => {
+    const isActive = activeName && p.name === activeName;
+    const st = latestStatement(p.name);
+    const meta = st ? (st.kind === 'vote' ? 'Vote · R' + st.round : (st.kind === 'defend' ? 'Defence · R' + st.round : 'Clue · R' + st.round)) : '';
+    const bubbleHtml = st
+      ? '<div class="bubble"><div class="bubble-meta">' + esc(meta) + '</div>' + esc(st.text) + '</div>'
+      : '<div class="bubble empty">' + (p.alive ? 'Waiting for turn...' : 'Eliminated') + '</div>';
+    return '<div class="actor' + (isActive ? ' active' : '') + (!p.alive ? ' out' : '') + '">' +
+      '<div class="actor-order">#' + (idx + 1) + '</div>' +
+      avatarSvg(p, isActive) +
+      '<div class="actor-name">' + esc(p.name) + '</div>' +
+      '<div class="actor-role">' + (p.ai ? 'AI (' + esc(p.gender) + ')' : 'Human') + (!p.alive ? ' · Out' : '') + '</div>' +
+      bubbleHtml +
+      '</div>';
+  }).join('');
+  return '<div class="comic-stage"><div class="comic-head">' +
+    '<span><b>Turn Line-Up</b> — sequential order left to right</span>' +
+    '<span class="comic-badge">' + esc(phaseLabel || 'In Progress') + '</span>' +
+    '</div><div class="comic-line">' + items + '</div></div>';
+}
+
 // ---------- screens ----------
 function view(h) {
   $('main').innerHTML = h;
-  $('main').querySelectorAll('[data-rp]').forEach(b => b.onclick = () => speak(S.hist[+b.dataset.rp]));
+  $('main').querySelectorAll('[data-rp]').forEach(b => b.onclick = () => {
+    const item = S.hist[+b.dataset.rp];
+    if (item) speak(item);
+  });
 }
 function wait(h) {
   return new Promise(res => { view(h); $('main').querySelectorAll('[data-go]').forEach(b => b.onclick = () => res(b.dataset.go)); });
 }
-function transcript() {
-  const rows = S.hist.map((e, i) => e.kind === 'vote' ? '' :
-    '<p>' + (e.kind === 'defend' ? 'Defence' : 'Round ' + e.round) + ' - <b>' + esc(e.name) + '</b>: ' + esc(e.text) +
-    (e.ai ? '<button class="small alt" data-rp="' + i + '" aria-label="Play again">Play again</button>' : '') + '</p>').join('');
-  return '<div class="log">' + (rows || '<p>No clues yet.</p>') + '</div>';
+function replayButtons() {
+  const aiItems = (S && S.hist ? S.hist : [])
+    .map((e, i) => ({ e, i }))
+    .filter(x => x.e.ai)
+    .slice(-3);
+  if (!aiItems.length) return '';
+  return '<div style="margin-bottom:8px">' +
+    aiItems.map(x => '<button class="small alt" data-rp="' + x.i + '">Replay ' + esc(x.e.name) + '</button>').join(' ') +
+    '</div>';
 }
 
 // ---------- audio ----------
 async function speak(e) {
+  const voice = voiceForName(e.name, e.voice);
   if (!e.audio) {
-    try { e.audio = (await post('/tts', { text: e.text, voice: e.voice, rate: +cfg.speech_rate })).audio_base64; $('tts').textContent = ''; }
+    try { e.audio = (await post('/tts', { text: e.text, voice, rate: +cfg.speech_rate })).audio_base64; $('tts').textContent = ''; }
     catch (err) { $('tts').textContent = 'Voice error: ' + err.message; return; }
   }
   new Audio('data:audio/mp3;base64,' + e.audio).play().catch(() => {});
@@ -112,9 +226,9 @@ async function wavB64(blob) {
 }
 
 // ---------- human speech: hold to talk, check text, confirm ----------
-function humanSpeak(title) {
+function humanSpeak(title, phaseLabel, activeName) {
   return new Promise(res => {
-    view('<h2>' + esc(title) + '</h2>' + transcript() +
+    view('<h2>' + esc(title) + '</h2>' + comicStrip(activeName, phaseLabel) + replayButtons() +
       '<button id="mic">Hold to speak English</button><div class="st" id="st">Press and hold the yellow button, speak, then let go.</div>' +
       '<textarea id="tx" placeholder="Your words appear here. You can also type."></textarea><button id="ok">Confirm</button>');
     const st = t => $('st').textContent = t, mic = $('mic');
@@ -166,7 +280,7 @@ function humanSpeak(title) {
 
 // ---------- game ----------
 const alive = () => S.players.filter(p => p.alive);
-const hist4ai = () => S.hist.filter(e => e.kind !== 'vote').map(e => ({ round: e.round, name: e.name, text: e.text }));
+const hist4ai = () => S.hist.filter(e => e.kind !== 'vote').map(e => ({ round: e.round, name: e.name, text: e.text, kind: e.kind }));
 
 async function rest(table, query) {
   const r = await fetch('https://' + CFG.ENV + '.api.tcloudbasegateway.com/v1/rdb/rest/' + table + '?' + query, { headers: { Authorization: 'Bearer ' + CFG.KEY } });
@@ -199,7 +313,30 @@ async function play(humanNames) {
   let fresh = pairs.filter(p => !used.has(p.id)); if (!fresh.length) { used.clear(); fresh = pairs; }
   const pr = fresh[Math.floor(Math.random() * fresh.length)]; used.add(pr.id);
   const flip = Math.random() < .5, cWord = flip ? pr.word_b : pr.word_a, uWord = flip ? pr.word_a : pr.word_b;
-  const ps = shuffle([...humanNames.map(n => ({ name: n, ai: false })), ...AI_NAMES.slice(0, cfg.ai_count).map((n, i) => ({ name: n, ai: true, voice: VOICES[i] }))]);
+
+  const humanObjs = humanNames.map((n, idx) => {
+    const g = guessGender(n);
+    return {
+      name: n,
+      ai: false,
+      gender: g,
+      voice: voiceForName(n),
+      shirt: idx % 2 === 0 ? '#1d3557' : '#6a4c93',
+      hair: idx % 2 === 0 ? '#1f1b18' : '#3b2416',
+      style: g === 'female' ? 'ponytail' : 'cap'
+    };
+  });
+  const aiObjs = AI_CAST.slice(0, cfg.ai_count).map(c => ({
+    name: c.name,
+    ai: true,
+    gender: c.gender,
+    voice: c.voice,
+    shirt: c.shirt,
+    hair: c.hair,
+    style: c.style
+  }));
+
+  const ps = shuffle([...humanObjs, ...aiObjs]);
   const us = new Set(shuffle(ps.map((_, i) => i)).slice(0, cfg.undercover_count));
   ps.forEach((p, i) => { p.under = us.has(i); p.word = p.under ? uWord : cWord; p.alive = true; if (!(p.name in scores)) scores[p.name] = 0; });
   S = { players: ps, hist: [], cWord, uWord };
@@ -221,8 +358,9 @@ async function play(humanNames) {
     }
     if (res.out) {
       res.out.alive = false;
-      await wait('<h2>' + esc(res.out.name) + ' is out!</h2><p>Their word was <b>' + esc(res.out.word) + '</b>. They were ' + (res.out.under ? 'an UNDERCOVER' : 'a civilian') + '.</p><button data-go="n">Continue</button>');
-    } else await wait('<h2>Tie again</h2><p>Nobody goes out this round.</p><button data-go="n">Continue</button>');
+      await wait('<h2>' + esc(res.out.name) + ' is out!</h2>' + comicStrip(res.out.name, 'Round ' + round + ' · Eliminated') +
+        '<p>Their word was <b>' + esc(res.out.word) + '</b>. They were ' + (res.out.under ? 'an UNDERCOVER' : 'a civilian') + '.</p><button data-go="n">Continue</button>');
+    } else await wait('<h2>Tie again</h2>' + comicStrip(null, 'Round ' + round + ' · Tie') + '<p>Nobody goes out this round.</p><button data-go="n">Continue</button>');
     const u = alive().filter(p => p.under).length, c = alive().length - u;
     if (u === 0) return finish('civilians');
     if (c <= u) return finish('undercovers');
@@ -230,37 +368,54 @@ async function play(humanNames) {
 }
 
 async function turn(p, round, kind) {
+  const phase = kind === 'defend' ? ('Round ' + round + ' · Defence') : ('Round ' + round + ' · Clue');
   let text;
   if (p.ai) {
-    view('<h2>' + esc(p.name) + ' is thinking...</h2>' + transcript());
-    text = (await post('/ai/speak', { name: p.name, word: p.word, level: cfg.difficulty, players: S.players.length, undercovers: cfg.undercover_count, history: hist4ai(), mode: kind === 'defend' ? 'defend' : 'speak' })).content;
-  } else text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name);
+    view('<h2>' + esc(p.name) + ' is thinking...</h2>' + comicStrip(p.name, phase));
+    text = (await post('/ai/speak', {
+      name: p.name,
+      word: p.word,
+      level: cfg.difficulty,
+      players: S.players.length,
+      undercovers: cfg.undercover_count,
+      history: hist4ai(),
+      mode: kind === 'defend' ? 'defend' : 'speak'
+    })).content;
+  } else {
+    text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name, phase, p.name);
+  }
   const e = { round, name: p.name, text, ai: p.ai, voice: p.voice, kind };
   S.hist.push(e);
-  if (p.ai) { speak(e); await wait('<h2>' + esc(p.name) + ' says:</h2>' + transcript() + '<button data-go="n">Next</button>'); }
+  if (p.ai) {
+    speak(e);
+    await wait('<h2>' + esc(p.name) + ' says:</h2>' + comicStrip(p.name, phase) + replayButtons() + '<button data-go="n">Next</button>');
+  }
 }
 
 async function vote(cands, round, second) {
   const tally = {};
+  const phase = (second ? 'Round ' + round + ' · Second Vote' : 'Round ' + round + ' · Voting');
   cands.forEach(c => tally[c.name] = 0);
   for (const v of alive()) {
     const opts = cands.filter(c => c !== v); if (!opts.length) continue;
     let target;
     if (v.ai) {
-      view('<h2>' + esc(v.name) + ' is voting...</h2>' + transcript());
+      view('<h2>' + esc(v.name) + ' is voting...</h2>' + comicStrip(v.name, phase));
       const r = await post('/ai/vote', { name: v.name, word: v.word, history: hist4ai(), candidates: opts.map(o => o.name) });
       target = r.target;
       const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + r.reason, ai: true, voice: v.voice, kind: 'vote' };
-      S.hist.push(e); speak(e);
-      await wait('<h2>' + esc(v.name) + ' votes</h2><p>' + esc(e.text) + '</p><button data-go="n">Next</button>');
+      S.hist.push(e);
+      speak(e);
+      await wait('<h2>' + esc(v.name) + ' votes</h2>' + comicStrip(v.name, phase) + replayButtons() + '<button data-go="n">Next</button>');
     } else {
-      target = await wait('<h2>' + esc(v.name) + ', who is the undercover?</h2>' + transcript() + '<div class="grid">' +
-        opts.map(o => '<button data-go="' + esc(o.name) + '">' + esc(o.name) + '</button>').join('') + '</div>');
+      target = await wait('<h2>' + esc(v.name) + ', who is the undercover?</h2>' + comicStrip(v.name, phase) + replayButtons() +
+        '<div class="grid">' + opts.map(o => '<button data-go="' + esc(o.name) + '">' + esc(o.name) + '</button>').join('') + '</div>');
     }
     tally[target]++;
   }
   const max = Math.max(...Object.values(tally)), top = cands.filter(c => tally[c.name] === max);
-  await wait('<h2>' + (second ? 'Second vote' : 'Votes') + '</h2><p>' + cands.map(c => esc(c.name) + ': ' + tally[c.name]).join('<br>') + '</p><button data-go="n">Continue</button>');
+  await wait('<h2>' + (second ? 'Second vote' : 'Votes') + '</h2>' + comicStrip(null, phase) +
+    '<p>' + cands.map(c => esc(c.name) + ': ' + tally[c.name]).join('<br>') + '</p><button data-go="n">Continue</button>');
   if (top.length === 1) return { out: top[0] };
   return second ? { out: null } : { tie: top };
 }
@@ -268,7 +423,8 @@ async function vote(cands, round, second) {
 async function finish(winner) {
   const pts = [];
   S.players.forEach(p => { const win = winner === 'civilians' ? !p.under : p.under; if (win) { const n = p.under ? 4 : 2; addScore(p.name, n); pts.push(esc(p.name) + ' +' + n); } });
-  await wait('<h2>' + (winner === 'civilians' ? 'Civilians win!' : 'Undercovers win!') + '</h2><p>Civilian word: <b>' + esc(S.cWord) + '</b><br>Undercover word: <b>' + esc(S.uWord) +
+  await wait('<h2>' + (winner === 'civilians' ? 'Civilians win!' : 'Undercovers win!') + '</h2>' + comicStrip(null, 'Game Over') +
+    '<p>Civilian word: <b>' + esc(S.cWord) + '</b><br>Undercover word: <b>' + esc(S.uWord) +
     '</b></p><p>Undercover: ' + S.players.filter(p => p.under).map(p => esc(p.name)).join(', ') + '</p><p>Points: ' + (pts.join(', ') || 'none') + '</p><button data-go="n">Next game</button>');
   start();
 }
