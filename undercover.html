@@ -7,14 +7,14 @@
 <style>
 :root{--bg:#fff7e6;--ink:#1d2b2a;--teal:#1f6f6b;--sun:#f0b429;--card:#fff;--line:#e6d9bb;--bad:#b3261e;--clue-bg:#e6f6f3;--clue-bd:#68b0a8;--vote-bg:#fff0d6;--vote-bd:#e5a94c}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:20px/1.45 "Trebuchet MS","Segoe UI",sans-serif;-webkit-user-select:none;user-select:none}
+body{margin:0;background:var(--bg);color:var(--ink);font:20px/1.45 "Trebuchet MS","Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;overflow-anchor:none}
 header{background:var(--teal);color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 header h1{margin:0;font-size:24px}
 #score{font-size:16px;display:flex;gap:12px;flex-wrap:wrap}
 #score span{background:rgba(255,255,255,.18);padding:2px 10px;border-radius:12px}
-main{max-width:1160px;margin:0 auto;padding:14px 16px 32px}
-h2{margin:6px 0 10px}
-button{font:inherit;padding:13px 20px;border:0;border-radius:12px;background:var(--teal);color:#fff;margin:6px 6px 6px 0;cursor:pointer;touch-action:manipulation}
+main{max-width:1160px;margin:0 auto;padding:14px 16px 32px;overflow-anchor:none}
+h2{margin:4px 0 6px}
+button{font:inherit;padding:12px 20px;border:0;border-radius:12px;background:var(--teal);color:#fff;margin:0 8px 0 0;cursor:pointer;touch-action:manipulation}
 button.alt{background:#fff;color:var(--teal);border:2px solid var(--teal)}
 button.sun{background:var(--sun);color:var(--ink)}
 button:disabled{opacity:.4;cursor:not-allowed}
@@ -22,11 +22,16 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .card{background:var(--card);border:3px dashed var(--teal);border-radius:20px;min-height:200px;display:flex;align-items:center;justify-content:center;font-size:40px;text-align:center;margin:12px 0;padding:16px;cursor:pointer}
 .card.up{border-style:solid;background:#e8f4f2}
 textarea{width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;min-height:70px;user-select:text;-webkit-user-select:text}
-#mic{background:var(--sun);color:var(--ink);width:100%;padding:24px;font-size:24px}
+#mic{background:var(--sun);color:var(--ink);width:100%;padding:22px;font-size:24px;margin-bottom:6px}
 #mic.on{background:var(--bad);color:#fff}
-.st{min-height:28px;color:var(--teal);margin:6px 0}
+.st{min-height:28px;color:var(--teal);margin:4px 0}
 .err{color:var(--bad);font-weight:bold}
-.grid{display:flex;flex-wrap:wrap}
+.grid{display:flex;flex-wrap:wrap;gap:6px}
+
+/* Fixed-height status & action slot so board content never shifts vertically */
+.status-slot{min-height:42px;display:flex;align-items:center;margin:2px 0 4px}
+.status-slot h2{margin:0;font-size:28px;line-height:1.2}
+.action-slot{min-height:54px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
 
 /* Lobby human avatar picker */
 .human-setup{background:#fffdf7;border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin:12px 0}
@@ -38,29 +43,29 @@ textarea{width:100%;font:inherit;padding:10px;border:2px solid var(--line);borde
 .pick-btn img{width:46px;height:46px;object-fit:cover;object-position:top center;border-radius:8px;display:block}
 
 /* Open board: sticky character headers + aligned round/statement rows */
-.board-wrap{overflow-x:auto;margin:10px 0 16px}
-.board-grid{display:grid;gap:8px;min-width:640px;align-items:start}
+.board-wrap{overflow-x:auto;margin:8px 0 16px;overflow-anchor:none}
+.board-grid{display:grid;gap:8px;min-width:640px;align-items:start;overflow-anchor:none}
 .sticky-top{position:sticky;top:0;z-index:20;background:var(--bg);padding:8px 4px 10px;border-bottom:2px solid var(--line)}
-.char-cell{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 4px;border-radius:14px;transition:transform .15s,background .15s}
-.char-cell.active{background:#fff1bd;box-shadow:0 0 0 2.5px var(--teal);transform:translateY(-2px)}
+.char-cell{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 4px;border-radius:14px;min-height:152px;justify-content:flex-start;transition:background .15s,box-shadow .15s}
+.char-cell.active{background:#fff1bd;box-shadow:0 0 0 2.5px var(--teal)}
 .char-cell.out{opacity:.45;filter:grayscale(.75)}
 .char-badge{font-size:11px;font-weight:bold;background:var(--teal);color:#fff;border-radius:999px;padding:1px 8px;margin-bottom:4px}
 .char-frame{width:76px;height:86px;border-radius:14px;overflow:hidden;border:2px solid var(--ink);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .char-img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
-.char-name{font-size:15px;font-weight:bold;margin-top:4px;line-height:1.2}
-.char-meta{font-size:11px;color:#526664;line-height:1.2}
+.char-name{font-size:15px;font-weight:bold;margin-top:4px;line-height:1.2;min-height:18px}
+.char-meta{font-size:11px;color:#526664;line-height:1.2;min-height:14px}
 
-.row-label{font-size:12px;font-weight:bold;color:#415654;padding:6px 2px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px}
-.legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+.row-label{font-size:12px;font-weight:bold;color:#415654;padding:6px 2px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px;min-height:62px}
+.legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .dot-clue{background:var(--clue-bd)}
 .dot-vote{background:var(--vote-bd)}
 
-.slot-cell{padding:4px 2px;border-top:1px dashed var(--line);min-height:54px}
+.slot-cell{padding:4px 2px;border-top:1px dashed var(--line);min-height:62px}
 .slot-cell.out{opacity:.45}
 .bubble{border-radius:12px;padding:7px 9px;font-size:13px;line-height:1.34;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .bubble.clue{background:var(--clue-bg);border:1.5px solid var(--clue-bd);color:#153633}
 .bubble.vote{background:var(--vote-bg);border:1.5px solid var(--vote-bd);color:#472c08}
-.bubble.empty{background:transparent;border:1px dashed #d8cab0;color:#9b9486;font-size:12px;text-align:center;padding:8px 4px;box-shadow:none}
+.bubble.empty{background:transparent;border:1px dashed #d8cab0;color:#9b9486;font-size:12px;text-align:center;padding:8px 4px;box-shadow:none;min-height:46px;display:flex;align-items:center;justify-content:center}
 .bubble-tag{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.03em;opacity:.72;margin-bottom:2px}
 .bubble-body{display:inline}
 .amp-btn{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:22px;height:22px;padding:0;margin:0 0 0 6px;border-radius:999px;font-size:12px;line-height:1;background:rgba(31,111,107,.14);color:var(--ink);border:1px solid rgba(31,111,107,.35)}
@@ -151,7 +156,7 @@ function addScore(name, n) {
 function portraitHtml(p) {
   const fb = fallbackSvgDataUri(p.gender, p.label);
   return '<div class="char-frame">' +
-    '<img class="char-img" src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy" ' +
+    '<img class="char-img" src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="eager" ' +
     'onerror="this.onerror=null;this.src=\'' + fb + '\'">' +
     '</div>';
 }
@@ -160,7 +165,6 @@ function ampHtml(histIdx) {
   return '<button type="button" class="amp-btn" data-amp="' + histIdx + '" title="Play audio" aria-label="Play audio">🔊</button>';
 }
 
-// Group history chronologically into rows (each round's clues, each vote/defence step)
 function buildRows() {
   if (!S || !S.hist || !S.hist.length) return [];
   const rows = [];
@@ -204,10 +208,10 @@ function buildRows() {
 function playerBoard(activeName, phaseLabel) {
   if (!S || !S.players || !S.players.length) return '';
   const n = S.players.length;
-  const colsStyle = 'grid-template-columns: 118px repeat(' + n + ', minmax(145px, 1fr));';
+  const colsStyle = 'grid-template-columns: 118px repeat(' + n + ', minmax(150px, 1fr));';
   const rows = buildRows();
 
-  let html = '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px;font-size:14px">' +
+  let html = '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;font-size:14px">' +
     '<span>' +
       '<span class="legend-dot dot-clue"></span> <b>Clue / Defence</b> &nbsp;&nbsp;' +
       '<span class="legend-dot dot-vote"></span> <b>Vote &amp; Reason</b>' +
@@ -217,8 +221,7 @@ function playerBoard(activeName, phaseLabel) {
 
   html += '<div class="board-wrap"><div class="board-grid" style="' + colsStyle + '">';
 
-  // Sticky top row: corner + player characters
-  html += '<div class="sticky-top" style="font-size:12px;font-weight:bold;color:#4f6361;display:flex;align-items:flex-end;padding-bottom:12px">Players</div>';
+  html += '<div class="sticky-top" style="font-size:12px;font-weight:bold;color:#4f6361;display:flex;align-items:flex-end;padding-bottom:12px;min-height:152px">Players</div>';
   S.players.forEach((p, idx) => {
     const isActive = activeName && p.name === activeName;
     html += '<div class="sticky-top char-cell' + (isActive ? ' active' : '') + (!p.alive ? ' out' : '') + '">' +
@@ -229,7 +232,6 @@ function playerBoard(activeName, phaseLabel) {
       '</div>';
   });
 
-  // Grid rows below characters: each row = one round/step, each column = one player
   if (!rows.length) {
     html += '<div class="row-label">Round 1 Clues</div>';
     S.players.forEach(p => {
@@ -259,7 +261,7 @@ function playerBoard(activeName, phaseLabel) {
   return html;
 }
 
-// ---------- screens ----------
+// ---------- screens with scroll & position stability ----------
 function bindAmps() {
   $('main').querySelectorAll('[data-amp]').forEach(btn => {
     btn.onclick = ev => {
@@ -269,10 +271,22 @@ function bindAmps() {
     };
   });
 }
+
 function view(h) {
+  const prevBoard = $('main').querySelector('.board-wrap');
+  const prevScrollX = prevBoard ? prevBoard.scrollLeft : 0;
+  const prevWinY = window.scrollY;
+
   $('main').innerHTML = h;
   bindAmps();
+
+  const nextBoard = $('main').querySelector('.board-wrap');
+  if (nextBoard && prevScrollX) nextBoard.scrollLeft = prevScrollX;
+  if (prevBoard && nextBoard && prevWinY > 0) {
+    window.scrollTo({ top: prevWinY, behavior: 'instant' });
+  }
 }
+
 function wait(h) {
   return new Promise(res => {
     view(h);
@@ -281,6 +295,12 @@ function wait(h) {
       res(b.dataset.go);
     });
   });
+}
+
+function boardScreen(titleText, actionHtml, activeName, phaseLabel) {
+  return '<div class="status-slot"><h2>' + esc(titleText) + '</h2></div>' +
+    '<div class="action-slot">' + (actionHtml || '') + '</div>' +
+    playerBoard(activeName, phaseLabel);
 }
 
 // ---------- audio: speak right as text appears, with clean fallback ----------
@@ -351,7 +371,7 @@ async function speak(e, opts = {}) {
           break;
         }
       } catch (err) {
-        // Try next voice or browser fallback silently
+        // Silent fallback
       }
     }
     if (!fetched) {
@@ -398,9 +418,10 @@ async function wavB64(blob) {
 function humanSpeak(title, phaseLabel, activeName) {
   stopAudio();
   return new Promise(res => {
-    view('<h2>' + esc(title) + '</h2>' +
+    view('<div class="status-slot"><h2>' + esc(title) + '</h2></div>' +
       '<button id="mic">Hold to speak English</button><div class="st" id="st">Press and hold the yellow button, speak, then let go.</div>' +
-      '<textarea id="tx" placeholder="Your words appear here. You can also type."></textarea><button id="ok">Confirm</button>' +
+      '<textarea id="tx" placeholder="Your words appear here. You can also type."></textarea>' +
+      '<div class="action-slot"><button id="ok">Confirm</button></div>' +
       playerBoard(activeName, phaseLabel));
     const st = t => $('st').textContent = t, mic = $('mic');
     let holding = false;
@@ -616,12 +637,18 @@ async function play(humanNames, humanAvatarIds) {
     }
     if (res.out) {
       res.out.alive = false;
-      await wait('<h2>' + esc(res.out.name) + ' is out!</h2>' +
-        '<p>Their word was <b>' + esc(res.out.word) + '</b>. They were ' + (res.out.under ? 'an UNDERCOVER' : 'a civilian') + '.</p><button data-go="n">Continue</button>' +
-        playerBoard(res.out.name, 'Round ' + round + ' · Eliminated'));
-    } else await wait('<h2>Tie again</h2>' +
-      '<p>Nobody goes out this round.</p><button data-go="n">Continue</button>' +
-      playerBoard(null, 'Round ' + round + ' · Tie'));
+      await wait(boardScreen(
+        res.out.name + ' is out!',
+        '<button data-go="n">Continue</button><span style="font-size:15px">Word: <b>' + esc(res.out.word) + '</b> (' + (res.out.under ? 'UNDERCOVER' : 'civilian') + ')</span>',
+        res.out.name,
+        'Round ' + round + ' · Eliminated'
+      ));
+    } else await wait(boardScreen(
+      'Tie again',
+      '<button data-go="n">Continue</button><span style="font-size:15px">Nobody goes out this round.</span>',
+      null,
+      'Round ' + round + ' · Tie'
+    ));
     const u = alive().filter(p => p.under).length, c = alive().length - u;
     if (u === 0) return finish('civilians');
     if (c <= u) return finish('undercovers');
@@ -631,7 +658,7 @@ async function play(humanNames, humanAvatarIds) {
 async function turn(p, round, kind) {
   const phase = kind === 'defend' ? ('Round ' + round + ' · Defence') : ('Round ' + round + ' · Clue');
   if (p.ai) {
-    view('<h2>' + esc(p.name) + ' is thinking...</h2>' + playerBoard(p.name, phase));
+    view(boardScreen(p.name + ' is thinking...', '', p.name, phase));
     const text = (await post('/ai/speak', {
       name: p.name,
       word: p.word,
@@ -643,7 +670,7 @@ async function turn(p, round, kind) {
     })).content;
     const e = { round, name: p.name, text, ai: true, voice: p.voice, gender: p.gender, kind };
     S.hist.push(e);
-    const waitPromise = wait('<h2>' + esc(p.name) + ' says:</h2><button data-go="n">Next</button>' + playerBoard(p.name, phase));
+    const waitPromise = wait(boardScreen(p.name + ' says:', '<button data-go="n">Next</button>', p.name, phase));
     speak(e);
     await waitPromise;
   } else {
@@ -661,25 +688,28 @@ async function vote(cands, round, second) {
     const opts = cands.filter(c => c !== v); if (!opts.length) continue;
     let target;
     if (v.ai) {
-      view('<h2>' + esc(v.name) + ' is voting...</h2>' + playerBoard(v.name, phase));
+      view(boardScreen(v.name + ' is voting...', '', v.name, phase));
       const r = await post('/ai/vote', { name: v.name, word: v.word, history: hist4ai(), candidates: opts.map(o => o.name) });
       target = r.target;
       const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + r.reason, ai: true, voice: v.voice, gender: v.gender, kind: 'vote' };
       S.hist.push(e);
-      const waitPromise = wait('<h2>' + esc(v.name) + ' votes</h2><button data-go="n">Next</button>' + playerBoard(v.name, phase));
+      const waitPromise = wait(boardScreen(v.name + ' votes', '<button data-go="n">Next</button>', v.name, phase));
       speak(e);
       await waitPromise;
     } else {
-      target = await wait('<h2>' + esc(v.name) + ', who is the undercover?</h2>' +
-        '<div class="grid">' + opts.map(o => '<button data-go="' + esc(o.name) + '">' + esc(o.name) + '</button>').join('') + '</div>' +
-        playerBoard(v.name, phase));
+      const voteButtons = '<div class="grid">' + opts.map(o => '<button data-go="' + esc(o.name) + '">' + esc(o.name) + '</button>').join('') + '</div>';
+      target = await wait(boardScreen(v.name + ', who is the undercover?', voteButtons, v.name, phase));
     }
     tally[target]++;
   }
   const max = Math.max(...Object.values(tally)), top = cands.filter(c => tally[c.name] === max);
-  await wait('<h2>' + (second ? 'Second vote' : 'Votes') + '</h2>' +
-    '<p>' + cands.map(c => esc(c.name) + ': ' + tally[c.name]).join('<br>') + '</p><button data-go="n">Continue</button>' +
-    playerBoard(null, phase));
+  const tallyText = cands.map(c => esc(c.name) + ': ' + tally[c.name]).join(' · ');
+  await wait(boardScreen(
+    second ? 'Second vote' : 'Votes',
+    '<button data-go="n">Continue</button><span style="font-size:15px">' + tallyText + '</span>',
+    null,
+    phase
+  ));
   if (top.length === 1) return { out: top[0] };
   return second ? { out: null } : { tie: top };
 }
@@ -687,10 +717,15 @@ async function vote(cands, round, second) {
 async function finish(winner) {
   const pts = [];
   S.players.forEach(p => { const win = winner === 'civilians' ? !p.under : p.under; if (win) { const n = p.under ? 4 : 2; addScore(p.name, n); pts.push(esc(p.name) + ' +' + n); } });
-  await wait('<h2>' + (winner === 'civilians' ? 'Civilians win!' : 'Undercovers win!') + '</h2>' +
-    '<p>Civilian word: <b>' + esc(S.cWord) + '</b><br>Undercover word: <b>' + esc(S.uWord) +
-    '</b></p><p>Undercover: ' + S.players.filter(p => p.under).map(p => esc(p.name)).join(', ') + '</p><p>Points: ' + (pts.join(', ') || 'none') + '</p><button data-go="n">Next game</button>' +
-    playerBoard(null, 'Game Over'));
+  const summary = 'Civilian: <b>' + esc(S.cWord) + '</b> · Undercover: <b>' + esc(S.uWord) +
+    '</b> · Spy: ' + S.players.filter(p => p.under).map(p => esc(p.name)).join(', ') +
+    (pts.length ? ' · Points: ' + pts.join(', ') : '');
+  await wait(boardScreen(
+    winner === 'civilians' ? 'Civilians win!' : 'Undercovers win!',
+    '<button data-go="n">Next game</button><span style="font-size:14px">' + summary + '</span>',
+    null,
+    'Game Over'
+  ));
   start();
 }
 
