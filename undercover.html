@@ -32,7 +32,7 @@ textarea{width:100%;font:inherit;padding:10px;border:2px solid var(--line);borde
 </style>
 </head>
 <body>
-<header><h1>Undercover</h1><div id="score"></div></header>
+<header><h1>Undercover</h1><div id="score"></div><div id="tts" style="width:100%;font-size:14px"></div></header>
 <main id="main">Loading...</main>
 <script>
 const CFG = {
@@ -82,8 +82,8 @@ function transcript() {
 // ---------- audio ----------
 async function speak(e) {
   if (!e.audio) {
-    try { e.audio = (await post('/tts', { text: e.text, voice: e.voice, rate: +cfg.speech_rate })).audio_base64; }
-    catch (err) { console.warn('TTS failed', err); return; }
+    try { e.audio = (await post('/tts', { text: e.text, voice: e.voice, rate: +cfg.speech_rate })).audio_base64; $('tts').textContent = ''; }
+    catch (err) { $('tts').textContent = 'Voice error: ' + err.message; return; }
   }
   new Audio('data:audio/mp3;base64,' + e.audio).play().catch(() => {});
 }
