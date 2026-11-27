@@ -90,9 +90,10 @@ async function speak(e) {
 let rec, chunks, stream;
 async function startRec() {
   stream = stream || await navigator.mediaDevices.getUserMedia({ audio: true });
-  chunks = []; rec = new MediaRecorder(stream);
-  rec.ondataavailable = e => chunks.push(e.data);
-  rec.start();
+  chunks = [];
+  rec = new MediaRecorder(stream);
+  rec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+  rec.start(250);
 }
 const stopRec = () => new Promise(r => { rec.onstop = () => r(new Blob(chunks)); rec.stop(); });
 async function wavB64(blob) {
@@ -117,20 +118,48 @@ function humanSpeak(title) {
       '<button id="mic">Hold to speak English</button><div class="st" id="st">Press and hold the yellow button, speak, then let go.</div>' +
       '<textarea id="tx" placeholder="Your words appear here. You can also type."></textarea><button id="ok">Confirm</button>');
     const st = t => $('st').textContent = t, mic = $('mic');
+    let holding = false;
+
     mic.onpointerdown = async e => {
-      try { mic.setPointerCapture(e.pointerId); await startRec(); mic.classList.add('on'); st('Listening... let go when you finish.'); }
-      catch (err) { st('Microphone problem: ' + err.message + '. You can type instead.'); }
+      e.preventDefault();
+      holding = true;
+      try {
+        mic.setPointerCapture(e.pointerId);
+        await startRec();
+        if (!holding) { await stopRec(); return; }
+        mic.classList.add('on');
+        st('Listening... let go when you finish.');
+      } catch (err) {
+        holding = false;
+        st('Microphone problem: ' + err.message + '. You can type instead.');
+      }
     };
-    mic.onpointerup = async () => {
+
+    const finishHold = async () => {
+      if (!holding) return;
+      holding = false;
       mic.classList.remove('on');
       if (!rec || rec.state !== 'recording') return;
       st('Recognising...');
       try {
-        const r = await post('/asr', { audio_base64: await wavB64(await stopRec()) });
-        $('tx').value = r.text || '';
-        console.log('ASR reply', r); st(r.text ? 'Check the words. Fix them if needed, then press Confirm.' : 'Nothing recognised. Try again or type. [debug: ' + JSON.stringify(r.raw || r).slice(0, 400) + ']');
-      } catch (err) { st('Could not recognise (' + err.message + '). You can type instead.'); }
+        const blob = await stopRec();
+        if (!blob.size) { st('No audio captured. Hold a bit longer or type.'); return; }
+        const r = await post('/asr', { audio_base64: await wavB64(blob) });
+        const heard = (r.text || '').trim();
+        if (heard) {
+          $('tx').value = heard;
+          st('Check the words. Fix them if needed, then press Confirm.');
+        } else {
+          console.log('ASR raw reply', r);
+          st('Nothing recognised. Try again or type.');
+        }
+      } catch (err) {
+        st('Could not recognise (' + err.message + '). You can type instead.');
+      }
     };
+
+    mic.onpointerup = finishHold;
+    mic.onpointercancel = finishHold;
     $('ok').onclick = () => { const t = $('tx').value.trim(); if (t) res(t); else st('Say or type something first.'); };
   });
 }
