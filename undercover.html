@@ -14,7 +14,7 @@ header h1{margin:0;font-size:24px}
 #score span{background:rgba(255,255,255,.18);padding:2px 10px;border-radius:12px}
 main{max-width:1180px;margin:0 auto;padding:14px 16px 36px;overflow-anchor:none}
 h2{margin:4px 0 6px}
-button{font:inherit;padding:13px 22px;min-height:44px;border:0;border-radius:12px;background:var(--teal);color:#fff;margin:0 8px 0 0;cursor:pointer;touch-action:manipulation}
+button{font:inherit;padding:13px 22px;min-height:46px;border:0;border-radius:12px;background:var(--teal);color:#fff;margin:0 8px 0 0;cursor:pointer;touch-action:manipulation}
 button.alt{background:#fff;color:var(--teal);border:2px solid var(--teal)}
 button.sun{background:var(--sun);color:var(--ink)}
 button:disabled{opacity:.4;cursor:not-allowed}
@@ -31,47 +31,49 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .status-hint.warn{color:var(--bad);font-weight:bold}
 .action-slot{min-height:56px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
 
-/* Lobby human avatar picker */
+/* Lobby setup */
 .human-setup{background:#fffdf7;border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin:12px 0}
 .human-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
 .human-top label{font-weight:bold}
-.picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
-.pick-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px;margin:0;min-height:74px;border-radius:10px;border:2px solid var(--line);background:#fff;color:var(--ink);font-size:12px;font-weight:bold}
+.picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+.pick-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px;margin:0;min-height:76px;border-radius:10px;border:2px solid var(--line);background:#fff;color:var(--ink);font-size:12px;font-weight:bold}
 .pick-btn.selected{border-color:var(--teal);background:#dff3ef;box-shadow:0 0 0 2px var(--teal)}
 .pick-btn img{width:52px;height:52px;object-fit:cover;object-position:top center;border-radius:8px;display:block}
+.mode-choice{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
+.mode-btn{min-height:46px;padding:10px 16px;border-radius:12px;border:2px solid var(--teal);background:#fff;color:var(--teal);font-weight:bold;margin:0}
+.mode-btn.active{background:var(--teal);color:#fff}
 
-/* Open board: sticky character headers + aligned round/statement rows */
+/* Open board: character headers + aligned round/statement rows */
 .board-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 16px;overflow-anchor:none}
 .board-grid{display:grid;gap:8px;min-width:660px;align-items:start;overflow-anchor:none}
-.sticky-top{position:sticky;top:0;z-index:20;background:var(--bg);padding:8px 4px 12px;border-bottom:2px solid var(--line)}
-.char-cell{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 4px;border-radius:14px;min-height:176px;justify-content:flex-start;transition:background .15s,box-shadow .15s}
-.char-cell.active{background:#fff1bd;box-shadow:0 0 0 2.5px var(--teal)}
-.char-cell.out{opacity:.45;filter:grayscale(.75)}
+.char-header-cell{background:var(--bg);padding:8px 4px 12px;border-bottom:2px solid var(--line);display:flex;flex-direction:column;align-items:center;text-align:center;border-radius:14px;min-height:172px;justify-content:flex-start;transition:background .15s,box-shadow .15s}
+.char-header-cell.active{background:#fff1bd;box-shadow:0 0 0 2.5px var(--teal)}
+.char-header-cell.out{opacity:.45;filter:grayscale(.75)}
 .char-badge{font-size:11px;font-weight:bold;background:var(--teal);color:#fff;border-radius:999px;padding:2px 9px;margin-bottom:4px}
-.char-portrait-box{position:relative;width:82px;height:92px;flex-shrink:0}
-.char-frame{width:82px;height:92px;border-radius:14px;overflow:hidden;border:2px solid var(--ink);background:#fff;display:flex;align-items:center;justify-content:center}
-.char-img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
-.char-mic-btn{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);width:96px;min-height:34px;padding:5px 6px;margin:0;border-radius:999px;font-size:12px;font-weight:bold;line-height:1.15;background:var(--sun);color:var(--ink);border:2px solid var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.22);white-space:nowrap;touch-action:none}
-.char-mic-btn.on{background:var(--bad);color:#fff;border-color:#fff}
-.char-name{font-size:15px;font-weight:bold;margin-top:15px;line-height:1.2;min-height:18px}
+.char-frame{width:82px;height:92px;border-radius:14px;overflow:hidden;border:2px solid var(--ink);background:#fff;display:block;flex-shrink:0}
+.char-img{width:82px;height:92px;max-width:none;object-fit:cover;object-position:top center;display:block}
+.char-name{font-size:15px;font-weight:bold;margin-top:6px;line-height:1.2;min-height:18px}
 .char-meta{font-size:11px;color:#526664;line-height:1.2;min-height:14px}
 
-.row-label{font-size:12px;font-weight:bold;color:#415654;padding:6px 2px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px;min-height:84px}
+.row-label{font-size:12px;font-weight:bold;color:#415654;padding:6px 2px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px;min-height:86px}
 .legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .dot-clue{background:var(--clue-bd)}
 .dot-vote{background:var(--vote-bd)}
 
-.slot-cell{padding:4px 2px;border-top:1px dashed var(--line);min-height:84px}
+.slot-cell{padding:4px 2px;border-top:1px dashed var(--line);min-height:86px}
 .slot-cell.out{opacity:.45}
 .bubble{border-radius:12px;padding:8px 10px;font-size:13.5px;line-height:1.36;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .bubble.clue{background:var(--clue-bg);border:1.5px solid var(--clue-bd);color:#153633}
 .bubble.vote{background:var(--vote-bg);border:1.5px solid var(--vote-bd);color:#472c08}
 .bubble.draft{background:var(--draft-bg);border:2px dashed var(--draft-bd);color:var(--ink)}
-.bubble.empty{background:transparent;border:1px dashed #d8cab0;color:#9b9486;font-size:12px;text-align:center;padding:8px 4px;box-shadow:none;min-height:66px;display:flex;align-items:center;justify-content:center}
+.bubble.empty{background:transparent;border:1px dashed #d8cab0;color:#9b9486;font-size:12px;text-align:center;padding:8px 4px;box-shadow:none;min-height:68px;display:flex;align-items:center;justify-content:center}
 .bubble-tag{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.03em;opacity:.72;margin-bottom:3px}
 .bubble-body{display:inline}
-.draft-input{width:100%;font-family:inherit;font-size:14px;line-height:1.35;padding:7px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);resize:vertical;min-height:54px;user-select:text;-webkit-user-select:text}
-.draft-confirm{padding:7px 14px;min-height:36px;font-size:13px;font-weight:bold;border-radius:9px;margin:6px 0 0 0;background:var(--teal);color:#fff}
+.draft-input{width:100%;font-family:inherit;font-size:14px;line-height:1.35;padding:7px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);resize:vertical;min-height:56px;user-select:text;-webkit-user-select:text}
+.draft-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.mic-toggle-btn{padding:8px 12px;min-height:42px;font-size:13px;font-weight:bold;border-radius:9px;margin:0;background:var(--sun);color:var(--ink);border:1.5px solid var(--ink)}
+.mic-toggle-btn.on{background:var(--bad);color:#fff;border-color:var(--bad)}
+.draft-confirm{padding:8px 14px;min-height:42px;font-size:13px;font-weight:bold;border-radius:9px;margin:0;background:var(--teal);color:#fff}
 .amp-btn{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:28px;height:28px;min-height:28px;padding:0;margin:0 0 0 6px;border-radius:999px;font-size:13px;line-height:1;background:rgba(31,111,107,.14);color:var(--ink);border:1px solid rgba(31,111,107,.35)}
 .bubble.vote .amp-btn{background:rgba(180,115,20,.16);border-color:rgba(180,115,20,.4)}
 .amp-btn:hover{background:var(--sun);color:var(--ink)}
@@ -81,11 +83,11 @@ button:disabled{opacity:.4;cursor:not-allowed}
   body{font-size:18px}
   main{padding:12px 12px 32px}
   .status-slot h2{font-size:22px}
-  .char-portrait-box,.char-frame{width:88px;height:98px}
-  .char-mic-btn{width:104px;min-height:40px;font-size:13px;bottom:-14px}
-  .char-name{margin-top:18px;font-size:14px}
-  .draft-input{font-size:15px;min-height:60px}
-  .draft-confirm{min-height:42px;padding:8px 16px;font-size:14px}
+  .char-frame{width:88px;height:98px}
+  .char-img{width:88px;height:98px}
+  .char-name{font-size:14px}
+  .draft-input{font-size:15px;min-height:64px}
+  .mic-toggle-btn,.draft-confirm{min-height:44px;padding:9px 14px;font-size:14px}
 }
 </style>
 </head>
@@ -121,6 +123,8 @@ const AVATAR_POOL = [
   { id: "f8", label: "F8", gender: "female", defaultName: "Ella", voice: "longanfengyue_v3.1",img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/f8.png" }
 ];
 
+const LOW_GRADES = new Set(["P1", "P2", "P3", "P4", "P5", "P6", "J1", "J2", "J3"]);
+
 function guessGender(name) {
   const n = (name || "").trim().toLowerCase();
   if (["mia","zoe","amy","eva","lily","lucy","anna","ella","emma","sophia","chloe","grace","olivia","ruby","claire","alice","rose","nina","tina","wendy"].includes(n)) return "female";
@@ -146,11 +150,6 @@ function voiceForGender(gender, seedStr, preferredVoice) {
   const s = seedStr || "";
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return pool[h % pool.length];
-}
-
-function voiceForAvatar(av, name) {
-  const g = normalizeGender(av, name);
-  return voiceForGender(g, (av && av.id) || name, av && av.voice);
 }
 
 function containsForbiddenWord(text, forbiddenList) {
@@ -223,17 +222,11 @@ function addScore(name, n) {
   drawScores();
 }
 
-function portraitHtml(p, isSpeakerMic) {
+function portraitHtml(p) {
   const fb = fallbackSvgDataUri(p.gender, p.label);
-  const recOn = isSpeakerMic && activeDraft && activeDraft.recording;
-  return '<div class="char-portrait-box">' +
-    '<div class="char-frame">' +
+  return '<div class="char-frame">' +
     '<img class="char-img" src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="eager" ' +
     'onerror="this.onerror=null;this.src=\'' + fb + '\'">' +
-    '</div>' +
-    (isSpeakerMic
-      ? '<button type="button" id="portraitMic" class="char-mic-btn' + (recOn ? ' on' : '') + '">' + (recOn ? 'Release' : 'Hold speak') + '</button>'
-      : '') +
     '</div>';
 }
 
@@ -284,12 +277,14 @@ function buildRows() {
 function playerBoard(activeName, phaseLabel) {
   if (!S || !S.players || !S.players.length) return '';
   const n = S.players.length;
-  const colsStyle = 'grid-template-columns: 118px repeat(' + n + ', minmax(160px, 1fr));';
+  const colsStyle = 'grid-template-columns: 118px repeat(' + n + ', minmax(168px, 1fr));';
   const rows = buildRows();
   const draft = activeDraft;
-  const draftRowType = draft && draft.kind === 'defend' ? 'defend' : 'clue';
+  const draftRowType = draft ? draft.kind : 'clue';
   const draftRowLabel = draft
-    ? (draft.kind === 'defend' ? ('Round ' + draft.round + ' Defence') : ('Round ' + draft.round + ' Clues'))
+    ? (draft.kind === 'defend' ? ('Round ' + draft.round + ' Defence')
+      : draft.kind === 'vote' ? ('Round ' + draft.round + ' Vote')
+      : ('Round ' + draft.round + ' Clues'))
     : '';
   let draftPlacedInExistingRow = false;
 
@@ -303,13 +298,12 @@ function playerBoard(activeName, phaseLabel) {
 
   html += '<div class="board-wrap"><div class="board-grid" style="' + colsStyle + '">';
 
-  html += '<div class="sticky-top" style="font-size:12px;font-weight:bold;color:#4f6361;display:flex;align-items:flex-end;padding-bottom:12px;min-height:176px">Players</div>';
+  html += '<div class="char-header-cell" style="font-size:12px;font-weight:bold;color:#4f6361;justify-content:flex-end;padding-bottom:12px;border-bottom:2px solid var(--line)">Players</div>';
   S.players.forEach((p, idx) => {
     const isActive = activeName && p.name === activeName;
-    const showMic = Boolean(draft && draft.playerName === p.name);
-    html += '<div class="sticky-top char-cell' + (isActive ? ' active' : '') + (!p.alive ? ' out' : '') + '">' +
+    html += '<div class="char-header-cell' + (isActive ? ' active' : '') + (!p.alive ? ' out' : '') + '">' +
       '<div class="char-badge">#' + (idx + 1) + '</div>' +
-      portraitHtml(p, showMic) +
+      portraitHtml(p) +
       '<div class="char-name">' + esc(p.name) + '</div>' +
       '<div class="char-meta">' + (p.ai ? 'AI · ' + esc(p.gender) : 'Human · ' + esc(p.gender)) + (!p.alive ? ' · Out' : '') + '</div>' +
       '</div>';
@@ -326,11 +320,17 @@ function playerBoard(activeName, phaseLabel) {
     }
     if (draft && draft.playerName === p.name && draftRowType === rowKind && draft.round === rowRound) {
       draftPlacedInExistingRow = true;
+      const isRec = Boolean(draft.recording);
+      const tagText = rowKind === 'defend' ? 'Defence Draft' : (rowKind === 'vote' ? 'Vote Reason Draft' : 'Clue Draft');
+      const phText = rowKind === 'vote' ? 'Tap Speak or type why you suspect them...' : 'Tap Speak or type your clue...';
       return '<div class="slot-cell">' +
         '<div class="bubble draft">' +
-        '<div class="bubble-tag">' + (rowKind === 'defend' ? 'Defence Draft' : 'Clue Draft') + '</div>' +
-        '<textarea id="draftBox" class="draft-input" placeholder="Hold speak on portrait or type...">' + esc(draft.text) + '</textarea>' +
-        '<button type="button" id="draftConfirm" class="draft-confirm">Confirm</button>' +
+        '<div class="bubble-tag">' + tagText + '</div>' +
+        '<textarea id="draftBox" class="draft-input" placeholder="' + phText + '">' + esc(draft.text) + '</textarea>' +
+        '<div class="draft-actions">' +
+          '<button type="button" id="micToggleBtn" class="mic-toggle-btn' + (isRec ? ' on' : '') + '">' + (isRec ? '⏹ Stop' : '🎤 Tap Speak') + '</button>' +
+          '<button type="button" id="draftConfirm" class="draft-confirm">Confirm</button>' +
+        '</div>' +
         '</div></div>';
     }
     return '<div class="slot-cell' + (!p.alive ? ' out' : '') + '"><div class="bubble empty">—</div></div>';
@@ -338,7 +338,8 @@ function playerBoard(activeName, phaseLabel) {
 
   if (!rows.length) {
     if (draft) {
-      html += '<div class="row-label"><span class="legend-dot dot-clue"></span><span>' + esc(draftRowLabel) + '</span></div>';
+      const dotClass = draftRowType === 'vote' ? 'dot-vote' : 'dot-clue';
+      html += '<div class="row-label"><span class="legend-dot ' + dotClass + '"></span><span>' + esc(draftRowLabel) + '</span></div>';
       for (const p of S.players) {
         html += renderBubbleOrDraft(p, null, draftRowType, draft.round);
       }
@@ -481,7 +482,7 @@ async function speak(e, opts = {}) {
     for (const v of candidates) {
       if (seq !== speechSeq) return;
       try {
-        const res = await post('/tts', { text: e.text, voice: v, rate: +cfg.speech_rate });
+        const res = await post('/tts', { text: e.text, voice: v, rate: +cfg.speech_rate, gender: g });
         if (seq !== speechSeq) return;
         if (res && res.audio_base64) {
           e.audio = res.audio_base64;
@@ -534,13 +535,13 @@ async function wavB64(blob) {
   return btoa(b);
 }
 
-// ---------- human speech: button on character portrait, draft text in player's bubble ----------
-function humanSpeak(title, phaseLabel, playerObj, round, kind) {
+// ---------- human speech: easy Tap Speak / Tap Stop toggle in player's bubble ----------
+function humanSpeak(title, phaseLabel, playerObj, round, kind, topActionHtml) {
   stopAudio();
   activeDraft = { playerName: playerObj.name, round, kind, text: '', recording: false };
 
   return new Promise(res => {
-    let holding = false;
+    let busy = false;
 
     function setHint(msg, warn = false) {
       const el = $('liveHint');
@@ -549,8 +550,16 @@ function humanSpeak(title, phaseLabel, playerObj, round, kind) {
       el.classList.toggle('warn', Boolean(warn));
     }
 
+    function syncMicUi() {
+      const btn = $('micToggleBtn');
+      if (!btn) return;
+      const on = Boolean(activeDraft && activeDraft.recording);
+      btn.classList.toggle('on', on);
+      btn.textContent = on ? '⏹ Stop' : '🎤 Tap Speak';
+    }
+
     function wireControls() {
-      const mic = $('portraitMic');
+      const mic = $('micToggleBtn');
       const box = $('draftBox');
       const ok = $('draftConfirm');
 
@@ -561,70 +570,65 @@ function humanSpeak(title, phaseLabel, playerObj, round, kind) {
       }
 
       if (mic) {
-        mic.onpointerdown = async e => {
+        mic.onclick = async e => {
           e.preventDefault();
           e.stopPropagation();
-          holding = true;
+          if (busy) return;
+          busy = true;
           try {
-            mic.setPointerCapture(e.pointerId);
-            await startRec();
-            if (!holding) { await stopRec(); return; }
-            if (activeDraft) activeDraft.recording = true;
-            mic.classList.add('on');
-            mic.textContent = 'Release';
-            setHint('Listening... release when done.');
-          } catch (err) {
-            holding = false;
-            if (activeDraft) activeDraft.recording = false;
-            setHint('Mic error: ' + err.message + '. Type in bubble.', true);
-          }
-        };
-
-        const finishHold = async e => {
-          if (e) e.stopPropagation();
-          if (!holding) return;
-          holding = false;
-          if (activeDraft) activeDraft.recording = false;
-          mic.classList.remove('on');
-          mic.textContent = 'Hold speak';
-          if (!rec || rec.state !== 'recording') return;
-          setHint('Recognising...');
-          try {
-            const blob = await stopRec();
-            if (!blob.size) { setHint('No audio captured. Hold longer or type.', true); return; }
-            const r = await post('/asr', { audio_base64: await wavB64(blob) });
-            const heard = (r.text || '').trim();
-            if (heard) {
-              if (activeDraft) activeDraft.text = heard;
-              const curBox = $('draftBox');
-              if (curBox) curBox.value = heard;
-              if (containsForbiddenWord(heard, [playerObj.word])) {
-                setHint('Do not say your secret word! Edit before confirming.', true);
-              } else {
-                setHint('Check text in bubble, then Confirm.');
-              }
+            if (!activeDraft.recording) {
+              await startRec();
+              activeDraft.recording = true;
+              syncMicUi();
+              setHint('Recording... tap Stop when finished.');
             } else {
-              setHint('Nothing heard. Try again or type.', true);
+              activeDraft.recording = false;
+              syncMicUi();
+              setHint('Recognising...');
+              const blob = await stopRec();
+              if (!blob.size) {
+                setHint('No audio captured. Tap Speak and talk clearly, or type.', true);
+              } else {
+                const r = await post('/asr', { audio_base64: await wavB64(blob) });
+                const heard = (r.text || '').trim();
+                if (heard) {
+                  activeDraft.text = heard;
+                  const curBox = $('draftBox');
+                  if (curBox) curBox.value = heard;
+                  if (containsForbiddenWord(heard, [playerObj.word])) {
+                    setHint('Do not say your secret word! Edit before confirming.', true);
+                  } else {
+                    setHint('Check your text in the bubble, then tap Confirm.');
+                  }
+                } else {
+                  setHint('Nothing heard. Tap Speak again or type.', true);
+                }
+              }
             }
           } catch (err) {
-            setHint('ASR failed (' + err.message + '). Type in bubble.', true);
+            if (activeDraft) activeDraft.recording = false;
+            syncMicUi();
+            setHint('Mic error: ' + err.message + '. You can type in the bubble.', true);
+          } finally {
+            busy = false;
           }
         };
-
-        mic.onpointerup = finishHold;
-        mic.onpointercancel = finishHold;
       }
 
       if (ok) {
-        ok.onclick = () => {
+        ok.onclick = async () => {
+          if (activeDraft && activeDraft.recording && rec && rec.state === 'recording') {
+            try { await stopRec(); } catch (e) {}
+            activeDraft.recording = false;
+          }
           const curBox = $('draftBox');
           const t = (curBox ? curBox.value : (activeDraft ? activeDraft.text : '')).trim();
           if (!t) {
-            setHint('Hold speak on portrait or type in bubble first.', true);
+            setHint('Tap Speak or type your statement first.', true);
             return;
           }
           if (containsForbiddenWord(t, [playerObj.word])) {
-            setHint('You cannot say your secret word in your description!', true);
+            setHint('You cannot say your secret word!', true);
             return;
           }
           activeDraft = null;
@@ -633,7 +637,7 @@ function humanSpeak(title, phaseLabel, playerObj, round, kind) {
       }
     }
 
-    view(boardScreen(title, '', playerObj.name, phaseLabel, 'Hold "Hold speak" on ' + playerObj.name + ' or type in bubble.'));
+    view(boardScreen(title, topActionHtml || '', playerObj.name, phaseLabel, 'Tap Speak to record (tap Stop to finish), or type in your bubble.'));
     wireControls();
   });
 }
@@ -653,6 +657,24 @@ async function loadAll() {
   pairs = await rest('word_pairs', 'select=*');
 }
 
+async function fetchAIWordPair() {
+  const existing = pairs.flatMap(w => [w.word_a, w.word_b]).slice(0, 80);
+  const funnyTwist = Math.random() < 0.22;
+  const r = await post('/ai/words', {
+    count: 1,
+    theme: funnyTwist ? 'everyday life (funny contrasting pair)' : 'everyday life',
+    difficulty: cfg.difficulty,
+    grade: cfg.difficulty,
+    funny_twist: funnyTwist,
+    existing
+  });
+  const list = Array.isArray(r.pairs) ? r.pairs : [];
+  if (list.length && list[0].a && list[0].b) {
+    return { word_a: String(list[0].a).trim().toLowerCase(), word_b: String(list[0].b).trim().toLowerCase() };
+  }
+  throw new Error('AI did not return a valid word pair.');
+}
+
 function lobby() {
   stopAudio();
   activeDraft = null;
@@ -667,6 +689,7 @@ function lobby() {
       return;
     }
 
+    let wordSource = 'db';
     const picked = Array.from({ length: hCount }, (_, idx) => AVATAR_POOL[idx % AVATAR_POOL.length].id);
     const seenInit = new Set();
     for (let i = 0; i < picked.length; i++) {
@@ -701,10 +724,26 @@ function lobby() {
       }
 
       view('<h2>New game</h2>' +
-        '<p>' + hCount + ' human and ' + aCount + ' AI players, ' + cfg.undercover_count + ' undercover.</p>' +
+        '<p>' + hCount + ' human and ' + aCount + ' AI players, ' + cfg.undercover_count + ' undercover · Level: <b>' + esc(cfg.difficulty || 'normal') + '</b>.</p>' +
+        '<div style="font-size:14px;font-weight:bold;margin-top:6px">Word pair source:</div>' +
+        '<div class="mode-choice">' +
+          '<button type="button" class="mode-btn' + (wordSource === 'db' ? ' active' : '') + '" data-wsrc="db">From Word Bank</button>' +
+          '<button type="button" class="mode-btn' + (wordSource === 'ai' ? ' active' : '') + '" data-wsrc="ai">AI Secret Pair (Teacher-Hidden)</button>' +
+        '</div>' +
         (errMsg ? '<p class="err">' + esc(errMsg) + '</p>' : '') +
         blocks +
         '<button id="goBtn">Start</button><button type="button" class="alt" id="resetBtn">Reset scores</button>');
+
+      $('main').querySelectorAll('[data-wsrc]').forEach(b => {
+        b.onclick = () => {
+          const savedNames = [...document.querySelectorAll('.nm')].map(inp => inp.value);
+          wordSource = b.dataset.wsrc;
+          renderLobby('');
+          [...document.querySelectorAll('.nm')].forEach((inp, idx) => {
+            if (savedNames[idx] !== undefined) inp.value = savedNames[idx];
+          });
+        };
+      });
 
       $('main').querySelectorAll('.pick-btn').forEach(btn => {
         btn.onclick = () => {
@@ -733,7 +772,7 @@ function lobby() {
           renderLobby('Human player names must be unique.');
           return;
         }
-        resolve({ action: 'start', humanNames: hs, humanAvatarIds: picked });
+        resolve({ action: 'start', humanNames: hs, humanAvatarIds: picked, wordSource });
       };
     }
 
@@ -741,9 +780,16 @@ function lobby() {
   });
 }
 
-async function play(humanNames, humanAvatarIds) {
-  let fresh = pairs.filter(p => !used.has(p.id)); if (!fresh.length) { used.clear(); fresh = pairs; }
-  const pr = fresh[Math.floor(Math.random() * fresh.length)]; used.add(pr.id);
+async function play(humanNames, humanAvatarIds, wordSource) {
+  let pr;
+  if (wordSource === 'ai') {
+    view('<h2>Generating secret word pair...</h2><p>Creating a level-appropriate pair for this round.</p>');
+    pr = await fetchAIWordPair();
+  } else {
+    let fresh = pairs.filter(p => !used.has(p.id)); if (!fresh.length) { used.clear(); fresh = pairs; }
+    pr = fresh[Math.floor(Math.random() * fresh.length)]; used.add(pr.id);
+  }
+
   const flip = Math.random() < .5, cWord = flip ? pr.word_b : pr.word_a, uWord = flip ? pr.word_a : pr.word_b;
 
   const usedAvatarIds = new Set();
@@ -789,7 +835,7 @@ async function play(humanNames, humanAvatarIds) {
   const ps = shuffle([...humanObjs, ...aiObjs]);
   const us = new Set(shuffle(ps.map((_, i) => i)).slice(0, cfg.undercover_count));
   ps.forEach((p, i) => { p.under = us.has(i); p.word = p.under ? uWord : cWord; p.alive = true; if (!(p.name in scores)) scores[p.name] = 0; });
-  S = { players: ps, hist: [], cWord, uWord };
+  S = { players: ps, hist: [], cWord, uWord, wordSource };
   drawScores();
 
   for (const p of ps.filter(p => !p.ai)) {
@@ -834,13 +880,14 @@ async function turn(p, round, kind) {
       name: p.name,
       word: p.word,
       level: cfg.difficulty,
+      grade: cfg.difficulty,
       players: S.players.length,
       undercovers: cfg.undercover_count,
       history: hist4ai(),
       mode: kind === 'defend' ? 'defend' : 'speak'
     })).content;
     if (containsForbiddenWord(text, [p.word])) {
-      text = 'I have a clear picture of what this means in context.';
+      text = 'I have a clear idea of how this fits into everyday life.';
     }
     const e = { round, name: p.name, text, ai: true, voice: p.voice, gender: p.gender, kind };
     S.hist.push(e);
@@ -854,6 +901,21 @@ async function turn(p, round, kind) {
   }
 }
 
+function pickSuspect(voter, opts, phase) {
+  return new Promise(resolve => {
+    const voteButtons = '<div class="grid">' +
+      opts.map(o => '<button type="button" data-pick="' + esc(o.name) + '">' + esc(o.name) + '</button>').join('') +
+      '</div>';
+    view(boardScreen(voter.name + ', who do you suspect?', voteButtons, voter.name, phase, 'Tap a player, then explain why you suspect them.'));
+    $('main').querySelectorAll('[data-pick]').forEach(btn => {
+      btn.onclick = () => {
+        stopAudio();
+        resolve(btn.dataset.pick);
+      };
+    });
+  });
+}
+
 async function vote(cands, round, second) {
   const tally = {};
   const phase = (second ? 'Round ' + round + ' · Second Vote' : 'Round ' + round + ' · Voting');
@@ -863,8 +925,23 @@ async function vote(cands, round, second) {
     let target;
     if (v.ai) {
       view(boardScreen(v.name + ' is voting...', '', v.name, phase));
-      const r = await post('/ai/vote', { name: v.name, word: v.word, history: hist4ai(), candidates: opts.map(o => o.name) });
-      target = r.target;
+      const r = await post('/ai/vote', {
+        name: v.name,
+        word: v.word,
+        level: cfg.difficulty,
+        grade: cfg.difficulty,
+        history: hist4ai(),
+        candidates: opts.map(o => ({ name: o.name, ai: o.ai }))
+      });
+      const validNames = opts.map(o => o.name);
+      target = validNames.includes(r.target) ? r.target : opts[Math.floor(Math.random() * opts.length)].name;
+      if (!v.under && LOW_GRADES.has(String(cfg.difficulty || '').toUpperCase())) {
+        const pickedObj = opts.find(o => o.name === target);
+        const aiAlts = opts.filter(o => o.name !== target && o.ai);
+        if (pickedObj && !pickedObj.ai && aiAlts.length && Math.random() < 0.55) {
+          target = aiAlts[Math.floor(Math.random() * aiAlts.length)].name;
+        }
+      }
       let reason = r.reason || '';
       if (containsForbiddenWord(reason, [v.word])) {
         reason = target + "'s clue seemed the least consistent with the group.";
@@ -875,8 +952,17 @@ async function vote(cands, round, second) {
       speak(e);
       await waitPromise;
     } else {
-      const voteButtons = '<div class="grid">' + opts.map(o => '<button data-go="' + esc(o.name) + '">' + esc(o.name) + '</button>').join('') + '</div>';
-      target = await wait(boardScreen(v.name + ', who is the undercover?', voteButtons, v.name, phase));
+      target = await pickSuspect(v, opts, phase);
+      const reason = await humanSpeak(
+        v.name + ' votes for ' + target,
+        phase,
+        v,
+        round,
+        'vote',
+        '<span style="font-size:15px">Suspect: <b>' + esc(target) + '</b></span>'
+      );
+      const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + reason, ai: false, voice: v.voice, gender: v.gender, kind: 'vote' };
+      S.hist.push(e);
     }
     tally[target]++;
   }
@@ -911,7 +997,7 @@ async function start() {
   try {
     const res = await lobby();
     if (res.action === 'retry') return start();
-    await play(res.humanNames, res.humanAvatarIds);
+    await play(res.humanNames, res.humanAvatarIds, res.wordSource);
   }
   catch (e) { await wait('<h2>Something went wrong</h2><p class="err">' + esc(e.message || String(e)) + '</p><button data-go="r">Start again</button>'); start(); }
 }
