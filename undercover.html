@@ -104,6 +104,9 @@ const CFG = {
 const MALE_VOICES = ["longanyang_v3.1", "longhan_v3.1", "xunanchuan_v3.1"];
 const FEMALE_VOICES = ["longanlingxin_v3.1", "longanfengyue_v3.1", "longanhuan_v3.1"];
 
+const EXTRA_MALE_NAMES = ["Oscar", "Tom", "Eric", "Alex", "Daniel", "Lucas", "Henry", "Ethan", "Paul", "Mark", "David", "Peter"];
+const EXTRA_FEMALE_NAMES = ["Chloe", "Grace", "Olivia", "Ruby", "Claire", "Alice", "Rose", "Nina", "Emma", "Sophia", "Hannah", "Clara"];
+
 const AVATAR_POOL = [
   { id: "m1", label: "M1", gender: "male",   defaultName: "Leo",  voice: "longanyang_v3.1",   img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m1.png" },
   { id: "m2", label: "M2", gender: "male",   defaultName: "Max",  voice: "longhan_v3.1",      img: "https://tonysew.wordpress.com/wp-content/uploads/2026/11/m2.png" },
@@ -127,7 +130,7 @@ const LOW_GRADES = new Set(["P1", "P2", "P3", "P4", "P5", "P6", "J1", "J2", "J3"
 
 function guessGender(name) {
   const n = (name || "").trim().toLowerCase();
-  if (["mia","zoe","amy","eva","lily","lucy","anna","ella","emma","sophia","chloe","grace","olivia","ruby","claire","alice","rose","nina","tina","wendy"].includes(n)) return "female";
+  if (["mia","zoe","amy","eva","lily","lucy","anna","ella","emma","sophia","chloe","grace","olivia","ruby","claire","alice","rose","nina","tina","wendy","hannah","clara"].includes(n)) return "female";
   if (["leo","max","ben","ryan","liam","noah","jack","sam","oscar","tom","eric","alex","daniel","lucas","henry","ethan","paul","mark","david","peter"].includes(n)) return "male";
   if (/[aei]$/.test(n) && !["mike","luke","kyle","nate","blake","charlie","jamie"].includes(n)) return "female";
   return "male";
@@ -138,6 +141,10 @@ function normalizeGender(av, name) {
   if (av && typeof av.avatarId === "string") {
     if (av.avatarId.startsWith("f")) return "female";
     if (av.avatarId.startsWith("m")) return "male";
+  }
+  if (av && typeof av.id === "string") {
+    if (av.id.startsWith("f")) return "female";
+    if (av.id.startsWith("m")) return "male";
   }
   return guessGender(name);
 }
@@ -416,7 +423,7 @@ function boardScreen(titleText, actionHtml, activeName, phaseLabel, hintText, is
     playerBoard(activeName, phaseLabel);
 }
 
-// ---------- audio: gender-matched voices, instant playback, clean fallback ----------
+// ---------- audio: strict gender-matched voices, instant playback, clean fallback ----------
 let activeAudio = null;
 let speechSeq = 0;
 
@@ -453,7 +460,7 @@ function speakBrowserFallback(text, gender, seq) {
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'en-US';
     u.rate = Math.max(0.75, Math.min(1.25, +cfg.speech_rate || 0.92));
-    u.pitch = g === 'female' ? 1.12 : 0.88;
+    u.pitch = g === 'female' ? 1.15 : 0.85;
     const voices = window.speechSynthesis.getVoices() || [];
     const enVoices = voices.filter(v => /en/i.test(v.lang));
     const femaleRx = /female|woman|girl|zira|samantha|victoria|aria|jenny|ava|allison|claire|zoe|hazel|susan|karen|moira|tessa|fiona/i;
@@ -768,7 +775,7 @@ function lobby() {
 
       $('goBtn').onclick = () => {
         const hs = [...document.querySelectorAll('.nm')].map((inp, k) => inp.value.trim() || 'Player ' + (k + 1));
-        if (new Set(hs).size < hs.length) {
+        if (new Set(hs.map(x => x.toLowerCase())).size < hs.length) {
           renderLobby('Human player names must be unique.');
           return;
         }
@@ -793,6 +800,8 @@ async function play(humanNames, humanAvatarIds, wordSource) {
   const flip = Math.random() < .5, cWord = flip ? pr.word_b : pr.word_a, uWord = flip ? pr.word_a : pr.word_b;
 
   const usedAvatarIds = new Set();
+  const usedNamesLower = new Set(humanNames.map(n => n.trim().toLowerCase()));
+
   const humanObjs = humanNames.map((n, idx) => {
     const chosenId = humanAvatarIds && humanAvatarIds[idx];
     const av = AVATAR_POOL.find(a => a.id === chosenId && !usedAvatarIds.has(a.id))
@@ -811,16 +820,28 @@ async function play(humanNames, humanAvatarIds, wordSource) {
     };
   });
 
-  const remainingAvatars = shuffle(AVATAR_POOL.filter(a => !usedAvatarIds.has(a.id)));
+  // Pick AI avatars that are neither used by humans nor sharing a human player's name
+  const unusedAvatars = shuffle(AVATAR_POOL.filter(a => !usedAvatarIds.has(a.id)));
+  const cleanNameAvatars = unusedAvatars.filter(a => !usedNamesLower.has(a.defaultName.toLowerCase()));
+  const fallbackAvatars = unusedAvatars.filter(a => usedNamesLower.has(a.defaultName.toLowerCase()));
+  const orderedAiAvatars = [...cleanNameAvatars, ...fallbackAvatars];
+
   const aiObjs = [];
   for (let i = 0; i < (cfg.ai_count || 0); i++) {
-    const av = remainingAvatars[i] || shuffle(AVATAR_POOL.filter(a => !usedAvatarIds.has(a.id)))[0] || AVATAR_POOL[i % AVATAR_POOL.length];
+    const av = orderedAiAvatars[i] || AVATAR_POOL.find(a => !usedAvatarIds.has(a.id)) || AVATAR_POOL[i % AVATAR_POOL.length];
     usedAvatarIds.add(av.id);
+    const gender = normalizeGender(av, av.defaultName);
+
     let aiName = av.defaultName;
-    if (humanObjs.some(h => h.name.toLowerCase() === aiName.toLowerCase())) {
-      aiName = aiName + ' AI';
+    if (usedNamesLower.has(aiName.toLowerCase())) {
+      const genderBackupPool = gender === "female" ? EXTRA_FEMALE_NAMES : EXTRA_MALE_NAMES;
+      const altName = genderBackupPool.find(nm => !usedNamesLower.has(nm.toLowerCase()))
+        || [...EXTRA_MALE_NAMES, ...EXTRA_FEMALE_NAMES].find(nm => !usedNamesLower.has(nm.toLowerCase()))
+        || ("Guest " + (i + 1));
+      aiName = altName;
     }
-    const gender = normalizeGender(av, aiName);
+    usedNamesLower.add(aiName.toLowerCase());
+
     aiObjs.push({
       name: aiName,
       ai: true,
@@ -889,14 +910,14 @@ async function turn(p, round, kind) {
     if (containsForbiddenWord(text, [p.word])) {
       text = 'I have a clear idea of how this fits into everyday life.';
     }
-    const e = { round, name: p.name, text, ai: true, voice: p.voice, gender: p.gender, kind };
+    const e = { round, name: p.name, text, ai: true, avatarId: p.avatarId, voice: p.voice, gender: p.gender, kind };
     S.hist.push(e);
     const waitPromise = wait(boardScreen(p.name + ' says:', '<button data-go="n">Next</button>', p.name, phase));
     speak(e);
     await waitPromise;
   } else {
     const text = await humanSpeak((kind === 'defend' ? 'Defend yourself, ' : 'Your turn, ') + p.name, phase, p, round, kind);
-    const e = { round, name: p.name, text, ai: false, voice: p.voice, gender: p.gender, kind };
+    const e = { round, name: p.name, text, ai: false, avatarId: p.avatarId, voice: p.voice, gender: p.gender, kind };
     S.hist.push(e);
   }
 }
@@ -928,6 +949,7 @@ async function vote(cands, round, second) {
       const r = await post('/ai/vote', {
         name: v.name,
         word: v.word,
+        pair_words: [S.cWord, S.uWord],
         level: cfg.difficulty,
         grade: cfg.difficulty,
         history: hist4ai(),
@@ -943,10 +965,10 @@ async function vote(cands, round, second) {
         }
       }
       let reason = r.reason || '';
-      if (containsForbiddenWord(reason, [v.word])) {
+      if (containsForbiddenWord(reason, [v.word, S.cWord, S.uWord])) {
         reason = target + "'s clue seemed the least consistent with the group.";
       }
-      const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + reason, ai: true, voice: v.voice, gender: v.gender, kind: 'vote' };
+      const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + reason, ai: true, avatarId: v.avatarId, voice: v.voice, gender: v.gender, kind: 'vote' };
       S.hist.push(e);
       const waitPromise = wait(boardScreen(v.name + ' votes', '<button data-go="n">Next</button>', v.name, phase));
       speak(e);
@@ -961,7 +983,7 @@ async function vote(cands, round, second) {
         'vote',
         '<span style="font-size:15px">Suspect: <b>' + esc(target) + '</b></span>'
       );
-      const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + reason, ai: false, voice: v.voice, gender: v.gender, kind: 'vote' };
+      const e = { round, name: v.name, text: 'I vote for ' + target + '. ' + reason, ai: false, avatarId: v.avatarId, voice: v.voice, gender: v.gender, kind: 'vote' };
       S.hist.push(e);
     }
     tally[target]++;
