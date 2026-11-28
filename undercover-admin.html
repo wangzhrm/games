@@ -53,7 +53,26 @@ th{color:var(--mute);font-weight:600;font-size:14px}
     <label>Human players<input id="s_h" type="number" min="1" max="8" style="width:90px"></label>
     <label>AI players<input id="s_a" type="number" min="0" max="7" style="width:90px"></label>
     <label>Undercovers<select id="s_u"><option>1</option><option>2</option></select></label>
-    <label>AI player level<select id="s_d"><option value="easy">Easy (primary)</option><option value="normal">Normal (middle school)</option><option value="hard">Hard (advanced)</option></select></label>
+    <label>Student level / grade
+      <select id="s_d">
+        <option value="P1">P1 (Primary Grade 1)</option>
+        <option value="P2">P2 (Primary Grade 2)</option>
+        <option value="P3">P3 (Primary Grade 3)</option>
+        <option value="P4">P4 (Primary Grade 4)</option>
+        <option value="P5">P5 (Primary Grade 5)</option>
+        <option value="P6">P6 (Primary Grade 6)</option>
+        <option value="J1">J1 (Junior High Grade 7)</option>
+        <option value="J2">J2 (Junior High Grade 8)</option>
+        <option value="J3">J3 (Junior High Grade 9)</option>
+        <option value="S1">S1 (Senior High Grade 10)</option>
+        <option value="S2">S2 (Senior High Grade 11)</option>
+        <option value="S3">S3 (Senior High Grade 12)</option>
+        <option value="IELTS5">IELTS5 (College · Band 5)</option>
+        <option value="IELTS6">IELTS6 (College · Band 6)</option>
+        <option value="IELTS7">IELTS7 (College · Band 7)</option>
+        <option value="IELTS8">IELTS8 (College · Band 8)</option>
+      </select>
+    </label>
     <label>AI voice speed <span id="rv"></span><input id="s_r" type="range" min="0.6" max="1.2" step="0.05"></label>
   </div>
   <div class="hint" id="total"></div>
@@ -63,8 +82,26 @@ th{color:var(--mute);font-weight:600;font-size:14px}
 <section>
   <h2>Add words</h2>
   <div class="row">
-    <label>Undercover difficulty for new pairs
-      <select id="diff"><option value="easy">Easy: words very different</option><option value="normal" selected>Normal: same category</option><option value="hard">Hard: almost the same</option></select></label>
+    <label>Level / grade for new pairs
+      <select id="diff">
+        <option value="P1">P1 (Primary 1)</option>
+        <option value="P2">P2 (Primary 2)</option>
+        <option value="P3">P3 (Primary 3)</option>
+        <option value="P4">P4 (Primary 4)</option>
+        <option value="P5">P5 (Primary 5)</option>
+        <option value="P6">P6 (Primary 6)</option>
+        <option value="J1">J1 (Junior High 1)</option>
+        <option value="J2">J2 (Junior High 2)</option>
+        <option value="J3">J3 (Junior High 3)</option>
+        <option value="S1">S1 (Senior High 1)</option>
+        <option value="S2">S2 (Senior High 2)</option>
+        <option value="S3">S3 (Senior High 3)</option>
+        <option value="IELTS5">IELTS5 (Band 5)</option>
+        <option value="IELTS6">IELTS6 (Band 6)</option>
+        <option value="IELTS7">IELTS7 (Band 7)</option>
+        <option value="IELTS8">IELTS8 (Band 8)</option>
+      </select>
+    </label>
   </div>
   <h3 style="font-size:16px;margin:6px 0">Type one pair</h3>
   <div class="row">
@@ -98,13 +135,11 @@ th{color:var(--mute);font-weight:600;font-size:14px}
 </main>
 
 <script>
-// ---- Edit these three lines ----
 const CFG = {
   ENV: "civil-prawn-d0gflguvzee35fad8",
   KEY: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkN2IyMmIyLWI4NjktNDNjNy04NGY0LWY0NTE2MDgxNDRhNSJ9.eyJpc3MiOiJodHRwczovL2NpdmlsLXByYXduLWQwZ2ZsZ3V2emVlMzVmYWQ4LmFwLXNoYW5naGFpLnRjYi1hcGkudGVuY2VudGNsb3VkYXBpLmNvbSIsInN1YiI6ImFub24iLCJhdWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsImV4cCI6NDA5ODg1NDQzMywiaWF0IjoxNzk1MTcxMjMzLCJub25jZSI6IlpOYXlDMXJ5VERxTmg1UFpFM0pxN3ciLCJhdF9oYXNoIjoiWk5heUMxcnlURHFOaDVQWkUzSnE3dyIsIm5hbWUiOiJBbm9ueW1vdXMiLCJzY29wZSI6ImFub255bW91cyIsInByb2plY3RfaWQiOiJjaXZpbC1wcmF3bi1kMGdmbGd1dnplZTM1ZmFkOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.udoyytgC9Z6QZjHnz7-v9rtM7K2C6PVYhVX9KgOrx76Q_j4phvYpItbrMc8eAfRiewAzXvyW2heL2U3mTofad8-q10i5R8TyJ6ZsR80qzsTs6CcAk699o3uAhB0E5QTa7GqEDrhlnVtu9Bi9-DroWgMMgV6CXgLCz-d0h1YQq1AReBNe1JNJv7MYMQG08YGmUEqgfgGlKwB-G7YJ5Ya6b3WLEVNLRBAPHOCMa8ExCiy9fAK1oDRyBlLq4ieH7pOaMriPYm7Y7C0XyemeLQ_0E5PDRPg9QNTCenwDG3usKCKV9hZGeiVmTKZHPYFBMgwM-iBlOslXPAjDW3Au8u85Jw",
   API: "https://civil-prawn-d0gflguvzee35fad8-1395372774.ap-shanghai.app.tcloudbase.com/undercover-api"
 };
-// --------------------------------
 const $ = id => document.getElementById(id);
 let TOKEN = CFG.KEY, words = [];
 
@@ -168,11 +203,18 @@ function checkTotal() {
   return ok;
 }
 ['s_h', 's_a', 's_u', 's_r'].forEach(i => $(i).oninput = checkTotal);
+$('s_d').onchange = () => { $('diff').value = $('s_d').value; };
+
 async function loadSettings() {
   const d = must(await db.from('settings').select('*').eq('id', 1))[0];
   if (!d) return;
   $('s_h').value = d.human_count; $('s_a').value = d.ai_count; $('s_u').value = d.undercover_count;
-  $('s_d').value = d.difficulty; $('s_r').value = d.speech_rate; checkTotal();
+  const validOpts = [...$('s_d').options].map(o => o.value);
+  const lvl = validOpts.includes(d.difficulty) ? d.difficulty : 'P4';
+  $('s_d').value = lvl;
+  $('diff').value = lvl;
+  $('s_r').value = d.speech_rate;
+  checkTotal();
 }
 $('saveS').onclick = () => guard($('saveS'), async () => {
   if (!checkTotal()) throw new Error('Please fix the player numbers first.');
@@ -186,9 +228,9 @@ $('saveS').onclick = () => guard($('saveS'), async () => {
 // ---- words ----
 function tableHTML(rows) {
   if (!rows.length) return '<tr><td>Nothing here yet.</td></tr>';
-  return '<tr><th></th><th>Word A</th><th>Word B</th><th>Difficulty</th><th>Source</th></tr>' + rows.map(w =>
+  return '<tr><th></th><th>Word A</th><th>Word B</th><th>Level</th><th>Source</th></tr>' + rows.map(w =>
     '<tr><td><input type="checkbox" value="' + w.id + '" aria-label="select"></td><td>' + esc(w.word_a) + '</td><td>' + esc(w.word_b) +
-    '</td><td>' + w.difficulty + '</td><td>' + w.source + '</td></tr>').join('');
+    '</td><td>' + esc(w.difficulty) + '</td><td>' + esc(w.source) + '</td></tr>').join('');
 }
 async function loadWords() {
   words = must(await db.from('word_pairs').select('*').order('id', { ascending: false }));
@@ -230,7 +272,7 @@ $('gen').onclick = () => guard($('gen'), async () => {
   const existing = words.flatMap(w => [w.word_a, w.word_b]).slice(0, 80);
   const r = await fetch(CFG.API + '/ai/words', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ count: +$('cnt').value, theme: $('theme').value, difficulty: $('diff').value, existing })
+    body: JSON.stringify({ count: +$('cnt').value, theme: $('theme').value, difficulty: $('diff').value, grade: $('diff').value, existing })
   });
   const j = await r.json();
   if (j.error) throw new Error('AI error: ' + j.error);
@@ -250,7 +292,6 @@ async function del(tableId, btn) {
 }
 $('delPend').onclick = () => del('pend', $('delPend'));
 $('delLib').onclick = () => del('lib', $('delLib'));
-
 </script>
 </body>
 </html>
